@@ -17,6 +17,12 @@ private:
     const uint16_t sequence_number_;
     const std::string& body_;
     
+    static const uint8_t TYPE = 8;
+    static const uint8_t CODE = 0;
+    
+    static uint16_t checksum(uint16_t identifier, 
+        uint16_t sequence_number, const std::string& body);
+
 };
 
 
