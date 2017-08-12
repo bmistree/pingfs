@@ -12,6 +12,7 @@ public:
     ~EchoRequest();
 
 private:
+    const uint16_t checksum_;
     const uint16_t identifier_;
     const uint16_t sequence_number_;
     const std::string& body_;
