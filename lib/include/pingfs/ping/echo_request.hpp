@@ -1,6 +1,7 @@
 #ifndef _ECHO_REQUEST_
 #define _ECHO_REQUEST_
 
+#include <boost/asio.hpp>
 #include <string>
 
 namespace pingfs {
@@ -10,6 +11,9 @@ public:
     EchoRequest(uint16_t identifier, uint16_t sequence_number,
         const std::string& body);
     ~EchoRequest();
+
+    friend std::ostream& operator<< (std::ostream& os,
+        const EchoRequest& request);
 
 private:
     const uint16_t checksum_;
@@ -24,7 +28,6 @@ private:
         uint16_t sequence_number, const std::string& body);
 
 };
-
 
 }  // namespace pingfs
 
