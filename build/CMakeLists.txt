@@ -5,7 +5,7 @@ set(LIB_FOLDER "../lib")
 set(LIB_INC_FOLDER "${LIB_FOLDER}/include")
 set(LIB_SRC_FOLDER "${LIB_FOLDER}/src")
 
-list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -Wall")
+list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -Wall -pthread")
 
 include_directories(${LIB_INC_FOLDER})
 file(GLOB LIB_PING_SRC_FILES "${LIB_SRC_FOLDER}/ping/*.cc")
@@ -16,7 +16,12 @@ add_library(
 
 
 ####### Add boost ########
-find_package(Boost 1.58.0)
+find_package(Boost 1.58.0 REQUIRED COMPONENTS system)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
-  endif() 
+endif()
+
+##### app builds #######
+set(APP_FOLDER "../app")
+add_executable(single_ping "${APP_FOLDER}/single_ping.cc")
+target_link_libraries(single_ping pingfs_lib ${Boost_LIBRARIES})
