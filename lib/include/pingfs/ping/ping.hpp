@@ -1,4 +1,5 @@
 #ifndef _PING_
+#define _PING_
 
 #include <string>
 
