@@ -16,7 +16,7 @@ add_library(
 
 
 ####### Add boost ########
-find_package(Boost 1.58.0 REQUIRED COMPONENTS system)
+find_package(Boost 1.58.0 REQUIRED COMPONENTS system program_options)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
