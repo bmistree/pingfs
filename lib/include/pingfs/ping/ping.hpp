@@ -18,6 +18,8 @@ public:
 
 private:
     boost::asio::io_service& io_service_;
+    boost::asio::ip::icmp::resolver resolver_;
+    boost::asio::ip::icmp::socket sock_;
 };
 
 }  // namespace pingfs
