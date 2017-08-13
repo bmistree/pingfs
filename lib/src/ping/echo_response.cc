@@ -21,6 +21,18 @@ EchoResponse::EchoResponse(uint16_t identifier, uint16_t sequence_number,
    data_(data) {
 }
 
+const std::string& EchoResponse::get_data() const {
+    return data_;
+}
+
+const uint16_t EchoResponse::get_identifier() const {
+    return identifier_;
+}
+
+const uint16_t EchoResponse::get_sequence_number() const {
+    return sequence_number_;
+}
+
 EchoResponse::~EchoResponse() {
 }
 

@@ -1,5 +1,9 @@
 #include <pingfs/ping/echo_request.hpp>
+#include <pingfs/ping/echo_response.hpp>
 #include <pingfs/ping/ping.hpp>
+
+#include <iostream>
+#include <functional>
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -11,10 +15,31 @@ namespace pingfs {
 Ping::Ping(boost::asio::io_service& io_service)
  : io_service_(io_service),
    resolver_(io_service),
-   sock_(io_service, icmp::v4()) {
+   sock_(io_service, icmp::v4()),
+   reply_buffer_() {
+    
+    sock_.async_receive(reply_buffer_.prepare(65536),
+        std::bind(&Ping::handle_receive, this,
+            std::placeholders::_1, std::placeholders::_2));
 }
 
 Ping::~Ping() {
+}
+
+void Ping::handle_receive(const boost::system::error_code& code,
+    std::size_t length) {
+    if (code.value() != boost::system::errc::success) {
+        // FIXME: Probably should abort for now
+        std::cerr<<"Error when receiving: "<< code<<"\n";
+    }
+
+    reply_buffer_.commit(length);
+    std::istream ipv4_stream(&reply_buffer_);
+    IpV4Stream stream(ipv4_stream);
+    EchoResponse echo_response(stream);
+    std::cout<<"\n"<<echo_response.get_identifier()<<"\n";
+    std::cout<<"\n"<<echo_response.get_sequence_number()<<"\n";
+    std::cout<<"\n"<<echo_response.get_data()<<"\n";
 }
 
 void Ping::ping(const std::string& content, const std::string& destination,

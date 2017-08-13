@@ -24,14 +24,14 @@ private:
 
     uint16_t read_unsigned_short() {
         uint16_t val;
-        ipv4_stream_ >> val;
+        ipv4_stream_.read(reinterpret_cast<char*>(&val), 2);
         return ntohs(val);
     }
 
     IpV4Stream& read_bytes(std::size_t num_bytes) {
         // FIXME: We are not guaranteed that a char is a byte in C++.
         char bytes[num_bytes];
-        ipv4_stream_.get(bytes, num_bytes);
+        ipv4_stream_.read(bytes, num_bytes);
         return *this;
     }
     
@@ -50,6 +50,10 @@ class EchoResponse {
 public:
     EchoResponse(IpV4Stream& ipv4_stream);
     ~EchoResponse();
+
+    const std::string& get_data() const;
+    const uint16_t get_identifier() const;
+    const uint16_t get_sequence_number() const;
 
 private:
     EchoResponse(uint16_t identifier, uint16_t sequence_number, 
