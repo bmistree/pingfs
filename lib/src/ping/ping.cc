@@ -8,9 +8,6 @@ using boost::asio::ip::icmp;
 
 namespace pingfs {
 
-static const uint16_t IDENTIFIER = 3353;
-static const uint16_t SEQUENCE_NUMBER = 1111;
-
 Ping::Ping(boost::asio::io_service& io_service)
  : io_service_(io_service) {
 }
@@ -19,7 +16,8 @@ Ping::~Ping() {
 }
 
 
-std::string Ping::ping(const std::string& content, const std::string& destination) {
+std::string Ping::ping(const std::string& content, const std::string& destination,
+    uint16_t identifier, uint16_t sequence_number) {
     icmp::resolver::query query(icmp::v4(), destination, "");
 
     icmp::resolver resolver(io_service_);
@@ -27,7 +25,7 @@ std::string Ping::ping(const std::string& content, const std::string& destinatio
     icmp::endpoint endpoint = *resolver.resolve(query);
 
     // Generate request
-    EchoRequest request(IDENTIFIER, SEQUENCE_NUMBER, content);
+    EchoRequest request(identifier, sequence_number, content);
 
     // Serialize request
     boost::asio::streambuf request_buffer;

@@ -13,7 +13,8 @@ public:
     Ping(boost::asio::io_service& io_service);
     ~Ping();
     std::string ping(const std::string& content, 
-        const std::string& destination);
+        const std::string& destination, uint16_t identifier,
+        uint16_t sequence_number);
 
 private:
     boost::asio::io_service& io_service_;

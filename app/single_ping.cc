@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     }
     boost::asio::io_service io_service;
     pingfs::Ping ping(io_service);
-    ping.ping(ping_content, hostname);
+    ping.ping(ping_content, hostname, 3353, 1111);
     io_service.run();
     return 0;
 }
