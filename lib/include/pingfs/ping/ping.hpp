@@ -6,11 +6,18 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
-
 namespace pingfs {
 
-std::string ping(const std::string& content, const std::string& destination,
-    boost::asio::io_service& io_service);
+class Ping {
+public:
+    Ping(boost::asio::io_service& io_service);
+    ~Ping();
+    std::string ping(const std::string& content, 
+        const std::string& destination);
+
+private:
+    boost::asio::io_service& io_service_;
+};
 
 }  // namespace pingfs
 
