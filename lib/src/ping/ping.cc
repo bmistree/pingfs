@@ -16,7 +16,7 @@ Ping::~Ping() {
 }
 
 
-std::string Ping::ping(const std::string& content, const std::string& destination,
+void Ping::ping(const std::string& content, const std::string& destination,
     uint16_t identifier, uint16_t sequence_number) {
     icmp::resolver::query query(icmp::v4(), destination, "");
 
@@ -34,7 +34,6 @@ std::string Ping::ping(const std::string& content, const std::string& destinatio
 
     // Send request
     sock.send_to(request_buffer.data(), endpoint);
-    return "dummy ping";
 }
 
 
