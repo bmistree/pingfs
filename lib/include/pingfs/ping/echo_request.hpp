@@ -19,7 +19,8 @@ private:
     const uint16_t checksum_;
     const uint16_t identifier_;
     const uint16_t sequence_number_;
-    const std::string& body_;
+    // FIXME: we copy a string in here; this may be expensive
+    const std::string body_;
     
     static const uint8_t TYPE = 8;
     static const uint8_t CODE = 0;
