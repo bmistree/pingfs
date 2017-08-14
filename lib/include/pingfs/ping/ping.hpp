@@ -7,10 +7,14 @@
 #include <boost/bind.hpp>
 #include <boost/system/error_code.hpp>
 
+#include <pingfs/util/publisher.hpp>
+#include <pingfs/util/subscriber.hpp>
+
+#include "echo_response.hpp"
 
 namespace pingfs {
 
-class Ping {
+class Ping : public Publisher<EchoResponse> {
 public:
     Ping(boost::asio::io_service& io_service);
     ~Ping();

@@ -1,9 +1,42 @@
 #include <iostream>
 
+#include <chrono>
+#include <thread>
+
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
+#include <pingfs/ping/echo_response.hpp>
 #include <pingfs/ping/ping.hpp>
+#include <pingfs/util/subscriber.hpp>
+
+class EchoRespSubscriber : public pingfs::Subscriber<pingfs::EchoResponse> {
+    
+public:
+    EchoRespSubscriber()
+     : identifier_(nullptr) {
+    }
+
+    ~EchoRespSubscriber() {
+        if (identifier_ == nullptr) {
+            delete identifier_;
+        }
+    }
+
+    void process(const pingfs::EchoResponse& notice) override {
+        if (identifier_ == nullptr) {
+            identifier_ = new uint16_t;
+        }
+        *identifier_ = notice.get_identifier();
+    }
+
+    const uint16_t* get_identifier() const {
+        return identifier_;
+    }
+
+private:
+    uint16_t* identifier_;
+};
 
 /**
  * Returns true if command line parsing passed; false otherwise.
@@ -50,8 +83,28 @@ int main(int argc, char** argv) {
     }
     boost::asio::io_service io_service;
     pingfs::Ping ping(io_service);
+
+    EchoRespSubscriber subscriber;
+    ping.subscribe(&subscriber);
+
+    // Actually issue a ping
     boost::asio::ip::icmp::endpoint endpoint = ping.resolve(hostname);
-    ping.ping(ping_content, endpoint, 3353, 1111);
+    uint16_t identifier = 3533;
+    ping.ping(ping_content, endpoint, identifier, 1111);
     io_service.run();
+
+    // Wait for a couple of seconds
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // Print out received identifier
+    const uint16_t* received_identifier = subscriber.get_identifier();
+    if (received_identifier == nullptr) {
+        std::cout<<"\nNo response\n";
+    } else if (*received_identifier == identifier) {
+        std::cout<<"\nResponse with correct identifer\n";
+    } else {
+        std::cout<<"\nResponse with incorrect identifer\n";
+    }
+
     return 0;
 }

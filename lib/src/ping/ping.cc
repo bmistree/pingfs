@@ -37,9 +37,7 @@ void Ping::handle_receive(const boost::system::error_code& code,
     std::istream ipv4_stream(&reply_buffer_);
     IpV4Stream stream(ipv4_stream);
     EchoResponse echo_response(stream);
-    std::cout<<"\n"<<echo_response.get_identifier()<<"\n";
-    std::cout<<"\n"<<echo_response.get_sequence_number()<<"\n";
-    std::cout<<"\n"<<echo_response.get_data()<<"\n";
+    notify(echo_response);
 }
 
 icmp::endpoint Ping::resolve(const std::string& destination) {
