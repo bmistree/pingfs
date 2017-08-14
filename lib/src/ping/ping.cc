@@ -42,10 +42,14 @@ void Ping::handle_receive(const boost::system::error_code& code,
     std::cout<<"\n"<<echo_response.get_data()<<"\n";
 }
 
-void Ping::ping(const std::string& content, const std::string& destination,
-    uint16_t identifier, uint16_t sequence_number) {
+icmp::endpoint Ping::resolve(const std::string& destination) {
     icmp::resolver::query query(icmp::v4(), destination, "");
-    icmp::endpoint endpoint = *resolver_.resolve(query);
+    return *resolver_.resolve(query);
+}
+
+void Ping::ping(const std::string& content, 
+    const icmp::endpoint& endpoint,
+    uint16_t identifier, uint16_t sequence_number) {
 
     // Generate request
     EchoRequest request(identifier, sequence_number, content);
