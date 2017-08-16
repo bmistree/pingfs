@@ -30,8 +30,13 @@ class IpV4Stream {
 
     IpV4Stream& read_bytes(std::size_t num_bytes) {
         // FIXME: We are not guaranteed that a char is a byte in C++.
-        char bytes[num_bytes];
+        // FIXME 2: It's probably inefficient to hit the memory
+        // allocator here, but this fixes a cpplint error, which
+        // warns against putting potentially unbounded space on the
+        // stack.
+        char* bytes = new char[num_bytes];
         ipv4_stream_->read(bytes, num_bytes);
+        delete bytes;
         return *this;
     }
 
