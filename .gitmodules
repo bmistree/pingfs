@@ -1,0 +1,3 @@
+[submodule "deps/cpplint"]
+	path = deps/cpplint
+	url = https://github.com/tkruse/cpplint.git
