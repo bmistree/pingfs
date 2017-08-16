@@ -5,8 +5,7 @@ namespace pingfs {
 
 template <typename T>
 class Subscriber {
-    
-public:
+ public:
     virtual void process(const T& notice) = 0;
     virtual ~Subscriber() {
     }

@@ -1,8 +1,3 @@
-#include <iostream>
-
-#include <chrono>
-#include <thread>
-
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
@@ -10,9 +5,12 @@
 #include <pingfs/ping/ping.hpp>
 #include <pingfs/util/subscriber.hpp>
 
+#include <iostream>
+#include <chrono>
+#include <thread>
+
 class EchoRespSubscriber : public pingfs::Subscriber<pingfs::EchoResponse> {
-    
-public:
+ public:
     EchoRespSubscriber()
      : identifier_(nullptr) {
     }
@@ -34,14 +32,14 @@ public:
         return identifier_;
     }
 
-private:
+ private:
     uint16_t* identifier_;
 };
 
 /**
  * Returns true if command line parsing passed; false otherwise.
  */
-bool parse_command_line(int argc, char** argv, 
+bool parse_command_line(int argc, char** argv,
     std::string& hostname, std::string& ping_content) {
     boost::program_options::options_description desc("Options");
     desc.add_options()
@@ -50,7 +48,8 @@ bool parse_command_line(int argc, char** argv,
             boost::program_options::value<std::string>(&hostname)->required(),
             "Name of host to ping")
         ("content",
-            boost::program_options::value<std::string>(&ping_content)->required(),
+            boost::program_options::value<std::string>(
+                &ping_content)->required(),
             "Content to put in ping body");
 
     boost::program_options::variables_map vm;
@@ -99,11 +98,11 @@ int main(int argc, char** argv) {
     // Print out received identifier
     const uint16_t* received_identifier = subscriber.get_identifier();
     if (received_identifier == nullptr) {
-        std::cout<<"\nNo response\n";
+        std::cout << "\nNo response\n";
     } else if (*received_identifier == identifier) {
-        std::cout<<"\nResponse with correct identifer\n";
+        std::cout << "\nResponse with correct identifer\n";
     } else {
-        std::cout<<"\nResponse with incorrect identifer\n";
+        std::cout << "\nResponse with incorrect identifer\n";
     }
 
     return 0;

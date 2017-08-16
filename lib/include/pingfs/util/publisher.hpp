@@ -3,16 +3,18 @@
 
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/locks.hpp>
+
+#include <vector>
+
 #include "subscriber.hpp"
 
 namespace pingfs {
 
 template <typename T>
 class Publisher {
-    
-public:
+ public:
     /**
-     * @param subscriber Caller is responsible for freeing this memory (and 
+     * @param subscriber Caller is responsible for freeing this memory (and
      * calling unsubscribe before freeing it).
      */
     void subscribe(Subscriber<T>* subscriber) {
@@ -29,7 +31,7 @@ public:
 
     virtual ~Publisher() {}
 
-protected:
+ protected:
     Publisher() {}
 
     void notify(const T& notice) {
@@ -43,7 +45,7 @@ protected:
         }
     }
 
-private:
+ private:
     boost::recursive_mutex subscriber_mutex_;
     /**
      * Each element is loaned from caller.

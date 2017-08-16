@@ -2,7 +2,7 @@
 
 namespace pingfs {
 
-uint16_t EchoRequest::checksum(uint16_t identifier, 
+uint16_t EchoRequest::checksum(uint16_t identifier,
     uint16_t sequence_number, const std::string& body) {
     // Note that we do *not* need htons here because we're doing a
     // mathematical operation on the data, whose value shouldn't
@@ -13,17 +13,17 @@ uint16_t EchoRequest::checksum(uint16_t identifier,
         sum += ((i % 2) == 0) ? (val << 8) : val;
     }
     sum += (sum >> 16);
-    // Note that we do need ntohs here because, by definition, 
+    // Note that we do need ntohs here because, by definition,
     // the value that we generate will be in network order.
     return ntohs(static_cast<uint16_t>(~sum));
 }
 
 EchoRequest::EchoRequest(uint16_t identifier, uint16_t sequence_number,
     const std::string& body)
- : checksum_(checksum(identifier, sequence_number, body)),
-   identifier_(identifier),
-   sequence_number_(sequence_number),
-   body_(body) {
+  : checksum_(checksum(identifier, sequence_number, body)),
+    identifier_(identifier),
+    sequence_number_(sequence_number),
+    body_(body) {
 }
 
 EchoRequest::~EchoRequest() {
