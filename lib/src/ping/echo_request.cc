@@ -29,17 +29,17 @@ EchoRequest::EchoRequest(uint16_t identifier, uint16_t sequence_number,
 EchoRequest::~EchoRequest() {
 }
 
-static void put_short(std::ostream&os, uint16_t s) {
-    os.put(static_cast<unsigned char>(s >> 8));
-    os.put(static_cast<unsigned char>(s & 0x00FF));
+static void put_short(std::ostream* os, uint16_t s) {
+    os->put(static_cast<unsigned char>(s >> 8));
+    os->put(static_cast<unsigned char>(s & 0x00FF));
 }
 
 std::ostream& operator<< (std::ostream& os, const EchoRequest& request) {
     os.put(static_cast<char>(EchoRequest::TYPE));
     os.put(static_cast<char>(EchoRequest::CODE));
-    put_short(os, htons(request.checksum_));
-    put_short(os, request.identifier_);
-    put_short(os, request.sequence_number_);
+    put_short(&os, htons(request.checksum_));
+    put_short(&os, request.identifier_);
+    put_short(&os, request.sequence_number_);
     os << request.body_;
     return os;
 }

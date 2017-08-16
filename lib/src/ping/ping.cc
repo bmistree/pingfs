@@ -12,10 +12,10 @@ using boost::asio::ip::icmp;
 
 namespace pingfs {
 
-Ping::Ping(boost::asio::io_service& io_service)
+Ping::Ping(boost::asio::io_service* io_service)
   : io_service_(io_service),
-    resolver_(io_service),
-    sock_(io_service, icmp::v4()),
+    resolver_(*io_service),
+    sock_(*io_service, icmp::v4()),
     reply_buffer_() {
     sock_.async_receive(reply_buffer_.prepare(65536),
         std::bind(&Ping::handle_receive, this,
@@ -34,8 +34,8 @@ void Ping::handle_receive(const boost::system::error_code& code,
 
     reply_buffer_.commit(length);
     std::istream ipv4_stream(&reply_buffer_);
-    IpV4Stream stream(ipv4_stream);
-    EchoResponse echo_response(stream);
+    IpV4Stream stream(&ipv4_stream);
+    EchoResponse echo_response(&stream);
     notify(echo_response);
 }
 

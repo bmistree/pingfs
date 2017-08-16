@@ -16,7 +16,7 @@ namespace pingfs {
 
 class Ping : public Publisher<EchoResponse> {
  public:
-    explicit Ping(boost::asio::io_service& io_service);
+    explicit Ping(boost::asio::io_service* io_service);
     ~Ping();
     void ping(const std::string& content,
         const boost::asio::ip::icmp::endpoint& enpoint,
@@ -29,7 +29,7 @@ class Ping : public Publisher<EchoResponse> {
         std::size_t length);
 
  private:
-    boost::asio::io_service& io_service_;
+    boost::asio::io_service* io_service_;
     boost::asio::ip::icmp::resolver resolver_;
     boost::asio::ip::icmp::socket sock_;
     boost::asio::streambuf reply_buffer_;

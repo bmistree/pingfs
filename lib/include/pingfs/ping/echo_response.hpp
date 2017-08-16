@@ -12,7 +12,7 @@ class EchoResponse;
 
 class IpV4Stream {
  public:
-    explicit IpV4Stream(std::istream& ipv4_stream) :
+    explicit IpV4Stream(std::istream* ipv4_stream) :
      ipv4_stream_(ipv4_stream) {
     }
 
@@ -24,30 +24,30 @@ class IpV4Stream {
 
     uint16_t read_unsigned_short() {
         uint16_t val;
-        ipv4_stream_.read(reinterpret_cast<char*>(&val), 2);
+        ipv4_stream_->read(reinterpret_cast<char*>(&val), 2);
         return ntohs(val);
     }
 
     IpV4Stream& read_bytes(std::size_t num_bytes) {
         // FIXME: We are not guaranteed that a char is a byte in C++.
         char bytes[num_bytes];
-        ipv4_stream_.read(bytes, num_bytes);
+        ipv4_stream_->read(bytes, num_bytes);
         return *this;
     }
 
     std::string to_str() {
-        std::string s(std::istreambuf_iterator<char>(ipv4_stream_), {});
+        std::string s(std::istreambuf_iterator<char>(*ipv4_stream_), {});
         return s;
     }
 
-    std::istream& ipv4_stream_;
+    std::istream* ipv4_stream_;
     friend EchoResponse;
 };
 
 
 class EchoResponse {
  public:
-    explicit EchoResponse(IpV4Stream& ipv4_stream);
+    explicit EchoResponse(IpV4Stream* ipv4_stream);
     ~EchoResponse();
 
     const std::string& get_data() const;
