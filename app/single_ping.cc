@@ -65,8 +65,9 @@ bool parse_command_line(int argc, char** argv,
     // Throw exceptions for missing arguments
     try {
         boost::program_options::notify(vm);
-    } catch(std::exception ex) {
-        std::cerr << "Error: " << ex.what() << "\n";
+    } catch(std::exception& ex) {
+        std::cerr << "\nError: " << ex.what() << "\n";
+        std::cerr << "\n" << desc << "\n";
         return false;
     }
     return true;
