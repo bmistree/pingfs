@@ -1,0 +1,13 @@
+#include <pingfs/block/block_response.hpp>
+
+namespace pingfs {
+
+BlockResponse::BlockResponse(
+    const std::vector<std::shared_ptr<const Block>>& blocks)
+  : blocks_(blocks) {
+}
+
+BlockResponse::~BlockResponse() {
+}
+
+}  // namespace pingfs
