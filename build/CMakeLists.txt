@@ -9,10 +9,12 @@ list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -Wall -pthread")
 
 include_directories(${LIB_INC_FOLDER})
 file(GLOB LIB_PING_SRC_FILES "${LIB_SRC_FOLDER}/ping/*.cc")
+file(GLOB LIB_BLOCK_SRC_FILES "${LIB_SRC_FOLDER}/block/*.cc")
 
 add_library(
   pingfs_lib
-  ${LIB_PING_SRC_FILES})
+  ${LIB_PING_SRC_FILES}
+  ${LIB_BLOCK_SRC_FILES})
 
 
 ####### Add boost ########
