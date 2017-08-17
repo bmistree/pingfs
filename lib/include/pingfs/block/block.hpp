@@ -14,6 +14,8 @@ class Block {
     Block(BlockId block_id, std::shared_ptr<const std::string> data);
     ~Block();
 
+    BlockId get_block_id() const;
+
     std::shared_ptr<const std::string> get_data() const;
 
  private:
