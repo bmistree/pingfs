@@ -23,6 +23,31 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+######## Include gtest ########
+include(ExternalProject)
+
+# Download and install GoogleTest
+ExternalProject_Add(
+  gtest
+  URL https://github.com/google/googletest/archive/release-1.8.0.zip
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
+  # Disable install step
+  INSTALL_COMMAND ""
+  )
+
+# Create a libgtest target to be used as a dependency by test programs
+add_library(libgtest IMPORTED STATIC GLOBAL)
+add_dependencies(libgtest gtest)
+
+# Set gtest properties
+ExternalProject_Get_Property(gtest source_dir binary_dir)
+set_target_properties(libgtest PROPERTIES
+  "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
+  "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+  )
+include_directories("${source_dir}/googletest/include")
+
+
 ##### app builds #######
 set(APP_FOLDER "../app")
 add_executable(single_ping "${APP_FOLDER}/single_ping.cc")
