@@ -14,8 +14,7 @@ class BlockManager {
     virtual void free_block(BlockId block_id) = 0;
     virtual const BlockResponse get_blocks(
         const BlockRequest& block_request) = 0;
-    virtual ~BlockManager() {
-    }
+    virtual ~BlockManager();
 };
 
 }  // namespace pingfs

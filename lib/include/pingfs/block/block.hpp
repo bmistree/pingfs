@@ -18,6 +18,10 @@ class Block {
 
     std::shared_ptr<const std::string> get_data() const;
 
+    bool operator==(const Block &other) const;
+
+    bool operator!=(const Block &other) const;
+
  private:
     const BlockId block_id_;
     const std::shared_ptr<const std::string> data_;

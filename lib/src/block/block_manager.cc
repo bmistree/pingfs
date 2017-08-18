@@ -1,11 +1,8 @@
-#include <pingfs/block/block.hpp>
-#include <pingfs/block/block_response.hpp>
-#include <pingfs/block/block_request.hpp>
-
+#include <pingfs/block/block_manager.hpp>
 
 namespace pingfs {
 
-BlockResponse::~BlockResponse() {
+BlockManager::~BlockManager() {
 }
 
 }  // namespace pingfs

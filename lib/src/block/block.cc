@@ -19,6 +19,15 @@ BlockId Block::get_block_id() const {
     return block_id_;
 }
 
+bool Block::operator==(const Block &other) const {
+    return ((block_id_ == other.block_id_) &&
+        (*data_ == *(other.data_)));
+}
+
+bool Block::operator!=(const Block &other) const {
+    return !(*this == other);
+}
+
 Block::~Block() {
 }
 

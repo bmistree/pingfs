@@ -7,6 +7,11 @@ BlockResponse::BlockResponse(
   : blocks_(blocks) {
 }
 
+const std::vector<std::shared_ptr<const Block>>& BlockResponse::get_blocks()
+    const {
+    return blocks_;
+}
+
 BlockResponse::~BlockResponse() {
 }
 

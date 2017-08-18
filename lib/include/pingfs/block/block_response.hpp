@@ -12,6 +12,9 @@ class BlockResponse {
  public:
     explicit BlockResponse(
         const std::vector<std::shared_ptr<const Block>>& blocks);
+
+    const std::vector<std::shared_ptr<const Block>>& get_blocks() const;
+
     ~BlockResponse();
 
  private:
