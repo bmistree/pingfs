@@ -52,3 +52,9 @@ include_directories("${source_dir}/googletest/include")
 set(APP_FOLDER "../app")
 add_executable(single_ping "${APP_FOLDER}/single_ping.cc")
 target_link_libraries(single_ping pingfs_lib ${Boost_LIBRARIES})
+
+##### test builds ######
+set(TEST_FOLDER "../test")
+
+add_executable(all_tests "${TEST_FOLDER}/test_main.cc")
+target_link_libraries(all_tests pingfs_lib ${Boost_LIBRARIES} libgtest)

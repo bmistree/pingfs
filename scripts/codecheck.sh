@@ -5,6 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Relative to root of project
 LIB_DIR=$DIR/../lib
 APP_DIR=$DIR/../app
+TEST_DIR=$DIR/../test
 
 ALL_FILES=($(find $LIB_DIR -name *.cc))
 ALL_FILES+=($(find $LIB_DIR -name *.hpp))
