@@ -7,6 +7,19 @@ set(LIB_SRC_FOLDER "${LIB_FOLDER}/src")
 
 list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -Wall -pthread")
 
+
+######## Compile protocol buffers #########
+file(GLOB PROTO_FILES  "${LIB_FOLDER}/../proto/*.proto")
+
+INCLUDE(FindProtobuf)
+FIND_PACKAGE(Protobuf REQUIRED)
+INCLUDE_DIRECTORIES(${PROTOBUF_INCLUDE_DIR})
+PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER ${PROTO_FILES})
+ADD_LIBRARY(pingfs_proto ${PROTO_HEADER} ${PROTO_SRC})
+include_directories(".")
+
+
+######### Generate pingfs_lib #########
 include_directories(${LIB_INC_FOLDER})
 file(GLOB LIB_PING_SRC_FILES "${LIB_SRC_FOLDER}/ping/*.cc")
 file(GLOB LIB_BLOCK_SRC_FILES "${LIB_SRC_FOLDER}/block/*.cc")
@@ -22,6 +35,7 @@ find_package(Boost 1.58.0 REQUIRED COMPONENTS system program_options)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
+
 
 ######## Include gtest ########
 include(ExternalProject)
@@ -51,10 +65,10 @@ include_directories("${source_dir}/googletest/include")
 ##### app builds #######
 set(APP_FOLDER "../app")
 add_executable(single_ping "${APP_FOLDER}/single_ping.cc")
-target_link_libraries(single_ping pingfs_lib ${Boost_LIBRARIES})
+target_link_libraries(single_ping pingfs_lib ${Boost_LIBRARIES} pingfs_proto)
 
 ##### test builds ######
 set(TEST_FOLDER "../test")
 
 add_executable(all_tests "${TEST_FOLDER}/test_main.cc")
-target_link_libraries(all_tests pingfs_lib ${Boost_LIBRARIES} libgtest)
+target_link_libraries(all_tests pingfs_lib ${Boost_LIBRARIES} libgtest pingfs_proto)
