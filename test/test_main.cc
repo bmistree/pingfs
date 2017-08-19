@@ -2,6 +2,7 @@
 
 #include "lib/block/block_test.hpp"
 #include "lib/block/memory_block_manager_test.hpp"
+#include "lib/block/block_data/dir_block_data_test.hpp"
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

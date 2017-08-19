@@ -20,7 +20,7 @@ BlockId MemoryBlockManager::get_next_block_id() {
     return next_block_id_++;
 }
 
-const Block MemoryBlockManager::create_block(const std::string& data) {
+const Block MemoryBlockManager::create_block(const BlockDataProto& data) {
     std::shared_ptr<const Block> block =
         std::make_shared<const Block>(Block(get_next_block_id(), data));
     {
