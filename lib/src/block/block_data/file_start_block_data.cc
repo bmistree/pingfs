@@ -17,6 +17,24 @@ FileStartBlockData::FileStartBlockData(
 FileStartBlockData::~FileStartBlockData() {
 }
 
+void FileStartBlockData::gen_proto(FileStartProto* proto) const {
+    proto->set_filename(filename_);
+    for (auto iter = children_.cbegin(); iter != children_.cend();
+         ++iter) {
+        proto->add_children(*iter);
+    }
+}
+
+bool FileStartBlockData::operator==(const FileStartBlockData &other) const {
+    return ((filename_ == other.filename_) &&
+        (children_ == other.children_));
+}
+
+bool FileStartBlockData::operator!=(const FileStartBlockData &other) const {
+    return !(*this == other);
+}
+
+
 const std::string& FileStartBlockData::get_filename() const {
     return filename_;
 }

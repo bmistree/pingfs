@@ -17,6 +17,10 @@ class FileStartBlockData : BlockData {
         const std::vector<BlockId>& children);
     virtual ~FileStartBlockData();
 
+    void gen_proto(FileStartProto* proto) const;
+    bool operator==(const FileStartBlockData &other) const;
+    bool operator!=(const FileStartBlockData &other) const;
+    
     const std::string& get_filename() const;
     const std::vector<BlockId>& get_children() const;
 
