@@ -15,6 +15,9 @@ class FileContentsBlockData : BlockData {
     FileContentsBlockData(const FileContentsProto& proto);
     FileContentsBlockData(std::shared_ptr<const std::string> data);
     virtual ~FileContentsBlockData();
+    void gen_proto(FileContentsProto* proto) const;
+    bool operator==(const FileContentsBlockData &other) const;
+    bool operator!=(const FileContentsBlockData &other) const;
 
     std::shared_ptr<const std::string> get_data() const;
 

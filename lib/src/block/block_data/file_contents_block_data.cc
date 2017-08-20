@@ -15,6 +15,21 @@ FileContentsBlockData::FileContentsBlockData(
 FileContentsBlockData::~FileContentsBlockData() {
 }
 
+bool FileContentsBlockData::operator==(
+    const FileContentsBlockData &other) const {
+    return *data_ == *other.data_;
+}
+
+bool FileContentsBlockData::operator!=(
+    const FileContentsBlockData &other) const {
+    return !(*this == other);
+}
+
+
+void FileContentsBlockData::gen_proto(FileContentsProto* proto) const {
+    proto->set_data(*data_);
+}
+
 std::shared_ptr<const std::string> FileContentsBlockData::get_data() const {
     return data_;
 }
