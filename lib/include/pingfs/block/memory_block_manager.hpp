@@ -3,7 +3,7 @@
 
 #include <boost/thread/mutex.hpp>
 
-#include "block_data.pb.h"
+#include "block_data/block_data.hpp"
 
 #include <memory>
 #include <string>
@@ -18,7 +18,7 @@ class MemoryBlockManager : public BlockManager {
  public:
     MemoryBlockManager();
 
-    const Block create_block(const BlockDataProto& data) override;
+    const Block create_block(std::shared_ptr<const BlockData> data) override;
     void free_block(BlockId block_id) override;
     const BlockResponse get_blocks(const BlockRequest& block_request) override;
     ~MemoryBlockManager() override;

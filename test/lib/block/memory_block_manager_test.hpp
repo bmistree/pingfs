@@ -5,18 +5,19 @@
 #include <pingfs/block/block_request.hpp>
 #include <pingfs/block/block_response.hpp>
 #include <pingfs/block/memory_block_manager.hpp>
+#include <pingfs/block/block_data/file_contents_block_data.hpp>
 
+#include <memory>
 #include <string>
 #include <vector>
 
-#include "block_data.pb.h"
 #include "gtest/gtest.h"
 
-pingfs::BlockDataProto test_file_start_proto(const std::string& filename) {
-    pingfs::BlockDataProto data_proto;
-    pingfs::FileStartProto* file_start_proto = data_proto.mutable_file_start();
-    file_start_proto->set_filename(filename);
-    return data_proto;
+std::shared_ptr<const pingfs::FileContentsBlockData> test_file_contents_proto(
+    const std::string& data) {
+    return std::make_shared<const pingfs::FileContentsBlockData>(
+        pingfs::FileContentsBlockData(
+            std::make_shared<const std::string>(data)));
 }
 
 /**
@@ -24,11 +25,10 @@ pingfs::BlockDataProto test_file_start_proto(const std::string& filename) {
  */
 TEST(MemoryBlockManager, CreateBlock) {
     pingfs::MemoryBlockManager manager;
-
-    pingfs::BlockDataProto test_data = test_file_start_proto("testing");
+    std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
+        test_file_contents_proto("testing");
     const pingfs::Block block = manager.create_block(test_data);
-    // FIXME: add equality checks
-    // ASSERT_EQ(test_data, *block.get_data());
+    ASSERT_EQ(*test_data, *block.get_data());
 }
 
 /**
@@ -37,7 +37,8 @@ TEST(MemoryBlockManager, CreateBlock) {
 TEST(MemoryBlockManager, RetrieveBlock) {
     pingfs::MemoryBlockManager manager;
 
-    pingfs::BlockDataProto test_data = test_file_start_proto("testing");
+    std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
+        test_file_contents_proto("testing");
     const pingfs::Block created_block = manager.create_block(test_data);
 
     std::vector<pingfs::BlockId> block_ids;

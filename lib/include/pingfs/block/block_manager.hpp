@@ -4,15 +4,16 @@
 #include "block_request.hpp"
 #include "block_response.hpp"
 
-#include "block_data.pb.h"
+#include "block_data/block_data.hpp"
 
+#include <memory>
 #include <string>
 
 namespace pingfs {
 
 class BlockManager {
  public:
-    virtual const Block create_block(const BlockDataProto& data) = 0;
+    virtual const Block create_block(std::shared_ptr<const BlockData> data) = 0;
     virtual void free_block(BlockId block_id) = 0;
     virtual const BlockResponse get_blocks(
         const BlockRequest& block_request) = 0;

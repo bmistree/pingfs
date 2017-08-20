@@ -1,5 +1,6 @@
 
 #include <pingfs/block/block.hpp>
+#include <pingfs/block/block_data/block_data_factory.hpp>
 
 #include <memory>
 #include <string>
@@ -7,14 +8,10 @@
 namespace pingfs {
 
 Block::Block(const BlockProto& proto)
- : Block(proto.id(), proto.data()) {
+  : Block(proto.id(), BlockDataFactory::generate(proto.data())) {
 }
 
-Block::Block(BlockId block_id, const BlockDataProto& data_proto)
-  : Block(block_id, std::make_shared<const BlockDataProto>(data_proto)) {
-}
-
-Block::Block(BlockId block_id, std::shared_ptr<const BlockDataProto> data)
+Block::Block(BlockId block_id, std::shared_ptr<const BlockData> data)
   : block_id_(block_id),
     data_(data) {
 }
@@ -24,9 +21,8 @@ BlockId Block::get_block_id() const {
 }
 
 bool Block::operator==(const Block &other) const {
-    return block_id_ == other.block_id_;
-    // return ((block_id_ == other.block_id_) &&
-    //     (*data_ == *(other.data_)));
+    return ((block_id_ == other.block_id_) &&
+        (*data_ == *other.data_));
 }
 
 bool Block::operator!=(const Block &other) const {
@@ -36,7 +32,7 @@ bool Block::operator!=(const Block &other) const {
 Block::~Block() {
 }
 
-std::shared_ptr<const BlockDataProto> Block::get_data() const {
+std::shared_ptr<const BlockData> Block::get_data() const {
     return data_;
 }
 
