@@ -13,6 +13,8 @@ typedef uint64_t BlockId;
 
 class BlockData {
  public:
+    virtual bool operator==(const BlockData &other) const = 0;
+    virtual bool operator!=(const BlockData &other) const = 0;
     virtual ~BlockData() {
     }
  protected:

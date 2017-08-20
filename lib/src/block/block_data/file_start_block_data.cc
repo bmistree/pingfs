@@ -25,12 +25,18 @@ void FileStartBlockData::gen_proto(FileStartProto* proto) const {
     }
 }
 
-bool FileStartBlockData::operator==(const FileStartBlockData &other) const {
-    return ((filename_ == other.filename_) &&
-        (children_ == other.children_));
+bool FileStartBlockData::operator==(const BlockData &o) const {
+    const FileStartBlockData* other =
+        dynamic_cast<const FileStartBlockData*>(&o);
+    if (other == nullptr) {
+        return false;
+    }
+    
+    return ((filename_ == other->filename_) &&
+        (children_ == other->children_));
 }
 
-bool FileStartBlockData::operator!=(const FileStartBlockData &other) const {
+bool FileStartBlockData::operator!=(const BlockData &other) const {
     return !(*this == other);
 }
 

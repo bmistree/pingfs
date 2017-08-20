@@ -25,12 +25,18 @@ void DirBlockData::gen_proto(DirProto* proto) const {
     }
 }
 
-bool DirBlockData::operator==(const DirBlockData &other) const {
-    return ((dirname_ == other.dirname_) &&
-        (children_ == other.children_));
+bool DirBlockData::operator==(const BlockData &o) const {
+    const DirBlockData* other =
+        dynamic_cast<const DirBlockData*>(&o);
+    if (other == nullptr) {
+        return false;
+    }
+
+    return ((dirname_ == other->dirname_) &&
+        (children_ == other->children_));
 }
 
-bool DirBlockData::operator!=(const DirBlockData &other) const {
+bool DirBlockData::operator!=(const BlockData &other) const {
     return !(*this == other);
 }
 

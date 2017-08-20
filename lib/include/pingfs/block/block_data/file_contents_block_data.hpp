@@ -10,14 +10,14 @@
 
 namespace pingfs {
 
-class FileContentsBlockData : BlockData {
+class FileContentsBlockData : public BlockData {
  public:
     FileContentsBlockData(const FileContentsProto& proto);
     FileContentsBlockData(std::shared_ptr<const std::string> data);
     virtual ~FileContentsBlockData();
     void gen_proto(FileContentsProto* proto) const;
-    bool operator==(const FileContentsBlockData &other) const;
-    bool operator!=(const FileContentsBlockData &other) const;
+    bool operator==(const BlockData &other) const;
+    bool operator!=(const BlockData &other) const;
 
     std::shared_ptr<const std::string> get_data() const;
 

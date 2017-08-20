@@ -15,13 +15,16 @@ FileContentsBlockData::FileContentsBlockData(
 FileContentsBlockData::~FileContentsBlockData() {
 }
 
-bool FileContentsBlockData::operator==(
-    const FileContentsBlockData &other) const {
-    return *data_ == *other.data_;
+bool FileContentsBlockData::operator==(const BlockData &o) const {
+    const FileContentsBlockData* other =
+        dynamic_cast<const FileContentsBlockData*>(&o);
+    if (other == nullptr) {
+        return false;
+    }
+    return *data_ == *(other->data_);
 }
 
-bool FileContentsBlockData::operator!=(
-    const FileContentsBlockData &other) const {
+bool FileContentsBlockData::operator!=(const BlockData &other) const {
     return !(*this == other);
 }
 

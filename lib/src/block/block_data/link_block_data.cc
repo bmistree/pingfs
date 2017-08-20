@@ -18,11 +18,16 @@ void LinkBlockData::gen_proto(LinkProto* proto) const {
     }
 }
 
-bool LinkBlockData::operator==(const LinkBlockData &other) const {
-    return children_ == other.children_;
+bool LinkBlockData::operator==(const BlockData &o) const {
+    const LinkBlockData* other =
+        dynamic_cast<const LinkBlockData*>(&o);
+    if (other == nullptr) {
+        return false;
+    }
+    return children_ == other->children_;
 }
 
-bool LinkBlockData::operator!=(const LinkBlockData &other) const {
+bool LinkBlockData::operator!=(const BlockData &other) const {
     return !(*this == other);
 }
 
