@@ -1,7 +1,7 @@
 #ifndef _BLOCK_DATA_
 #define _BLOCK_DATA_
 
-#include "block_data.pb.h"
+#include <block_data.pb.h>
 #include <google/protobuf/repeated_field.h>
 
 #include <memory>

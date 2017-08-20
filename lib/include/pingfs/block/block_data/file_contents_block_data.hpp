@@ -1,19 +1,20 @@
 #ifndef _FILE_CONTENTS_BLOCK_DATA_
 #define _FILE_CONTENTS_BLOCK_DATA_
 
-#include "block_data.pb.h"
-#include "block_data.hpp"
+#include <block_data.pb.h>
 
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "block_data.hpp"
+
 namespace pingfs {
 
 class FileContentsBlockData : public BlockData {
  public:
-    FileContentsBlockData(const FileContentsProto& proto);
-    FileContentsBlockData(std::shared_ptr<const std::string> data);
+    explicit FileContentsBlockData(const FileContentsProto& proto);
+    explicit FileContentsBlockData(std::shared_ptr<const std::string> data);
     virtual ~FileContentsBlockData();
     void gen_proto(FileContentsProto* proto) const;
     bool operator==(const BlockData &other) const;

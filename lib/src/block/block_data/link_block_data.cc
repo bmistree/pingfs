@@ -4,7 +4,7 @@
 namespace pingfs {
 
 LinkBlockData::LinkBlockData(const LinkProto& proto)
- : LinkBlockData(BlockData::iters_to_vector(proto.children())) {
+  : LinkBlockData(BlockData::iters_to_vector(proto.children())) {
 }
 
 LinkBlockData::LinkBlockData(const std::vector<BlockId>& children)

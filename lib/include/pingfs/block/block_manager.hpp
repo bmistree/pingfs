@@ -1,13 +1,12 @@
 #ifndef _BLOCK_MANAGER_
 #define _BLOCK_MANAGER_
 
-#include "block_request.hpp"
-#include "block_response.hpp"
-
-#include "block_data/block_data.hpp"
-
 #include <memory>
 #include <string>
+
+#include "block_request.hpp"
+#include "block_response.hpp"
+#include "block_data/block_data.hpp"
 
 namespace pingfs {
 

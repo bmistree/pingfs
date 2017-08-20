@@ -1,10 +1,11 @@
 #ifndef _FILE_CONTENTS_BLOCK_DATA_TEST_
 #define _FILE_CONTENTS_BLOCK_DATA_TEST_
 
-#include "block_data.pb.h"
-#include <memory>
-
+#include <block_data.pb.h>
 #include <pingfs/block/block_data/file_contents_block_data.hpp>
+
+#include <memory>
+#include <string>
 
 TEST(FileContentsBlockData, SerializeDesrialize) {
     pingfs::FileContentsBlockData original(

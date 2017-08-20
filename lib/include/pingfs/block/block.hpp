@@ -2,7 +2,7 @@
 #define _BLOCK_
 
 #include "block_data/block_data.hpp"
-#include "block_data.pb.h"
+#include <block_data.pb.h>
 
 #include <memory>
 #include <string>
@@ -11,7 +11,7 @@ namespace pingfs {
 
 class Block {
  public:
-    Block(const BlockProto& proto);
+    explicit Block(const BlockProto& proto);
     Block(BlockId block_id, const BlockData& data);
     Block(BlockId block_id, std::shared_ptr<const BlockData> data);
     ~Block();

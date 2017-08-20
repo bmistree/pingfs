@@ -1,12 +1,14 @@
 #ifndef _BLOCK_TEST_
 #define _BLOCK_TEST_
 
+#include <block_data.pb.h>
+
 #include <pingfs/block/block.hpp>
 #include <pingfs/block/block_data/dir_block_data.hpp>
 
 #include <string>
+#include <vector>
 
-#include "block_data.pb.h"
 #include "gtest/gtest.h"
 
 

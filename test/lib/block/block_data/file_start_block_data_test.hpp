@@ -1,10 +1,10 @@
 #ifndef _FILE_START_BLOCK_DATA_TEST_
 #define _FILE_START_BLOCK_DATA_TEST_
 
-#include "block_data.pb.h"
-#include <vector>
-
+#include <block_data.pb.h>
 #include <pingfs/block/block_data/file_start_block_data.hpp>
+
+#include <vector>
 
 TEST(FileStartBlockData, SerializeDesrialize) {
     std::vector<pingfs::BlockId> children;

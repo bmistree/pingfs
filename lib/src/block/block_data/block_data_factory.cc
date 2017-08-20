@@ -25,7 +25,7 @@ std::shared_ptr<const BlockData> BlockDataFactory::generate(
         return std::make_shared<const FileStartBlockData>(
             FileStartBlockData(proto.file_start()));
     }
-    
+
     if (proto.has_link()) {
         return std::make_shared<const LinkBlockData>(
             LinkBlockData(proto.link()));

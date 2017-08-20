@@ -1,23 +1,20 @@
 #ifndef _BLOCK_DATA_FACTORY_
 #define _BLOCK_DATA_FACTORY_
 
-#include "block_data.pb.h"
-#include "block_data.hpp"
+#include <block_data.pb.h>
 #include <memory>
-
+#include "block_data.hpp"
 
 namespace pingfs {
 
 class BlockDataFactory {
-
-public:
+ public:
     static std::shared_ptr<const BlockData> generate(
         const BlockDataProto& proto);
 
-private:
+ private:
     BlockDataFactory() {
     }
-
 };
 
 }  // namespace pingfs

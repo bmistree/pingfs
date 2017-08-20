@@ -1,18 +1,18 @@
 #ifndef _FILE_START_BLOCK_DATA_
 #define _FILE_START_BLOCK_DATA_
 
-#include "block_data.pb.h"
-#include "block_data.hpp"
+#include <block_data.pb.h>
 
 #include <string>
 #include <vector>
 
+#include "block_data.hpp"
 
 namespace pingfs {
 
 class FileStartBlockData : public BlockData {
  public:
-    FileStartBlockData(const FileStartProto& proto);
+    explicit FileStartBlockData(const FileStartProto& proto);
     FileStartBlockData(const std::string& filename,
         const std::vector<BlockId>& children);
     virtual ~FileStartBlockData();
@@ -20,7 +20,7 @@ class FileStartBlockData : public BlockData {
     void gen_proto(FileStartProto* proto) const;
     bool operator==(const BlockData &other) const;
     bool operator!=(const BlockData &other) const;
-    
+
     const std::string& get_filename() const;
     const std::vector<BlockId>& get_children() const;
 

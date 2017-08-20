@@ -1,9 +1,9 @@
 #ifndef _DIR_BLOCK_DATA_TEST_
 #define _DIR_BLOCK_DATA_TEST_
 
-#include "block_data.pb.h"
-
 #include <pingfs/block/block_data/dir_block_data.hpp>
+#include <block_data.pb.h>
+#include <vector>
 
 TEST(DirBlockData, Construct) {
     std::vector<pingfs::BlockId> children;

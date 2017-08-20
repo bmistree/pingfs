@@ -31,7 +31,7 @@ bool FileStartBlockData::operator==(const BlockData &o) const {
     if (other == nullptr) {
         return false;
     }
-    
+
     return ((filename_ == other->filename_) &&
         (children_ == other->children_));
 }
