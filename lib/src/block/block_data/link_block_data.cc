@@ -11,6 +11,21 @@ LinkBlockData::LinkBlockData(const std::vector<BlockId>& children)
   : children_(children) {
 }
 
+void LinkBlockData::gen_proto(LinkProto* proto) const {
+    for (auto iter = children_.cbegin(); iter != children_.cend();
+         ++iter) {
+        proto->add_children(*iter);
+    }
+}
+
+bool LinkBlockData::operator==(const LinkBlockData &other) const {
+    return children_ == other.children_;
+}
+
+bool LinkBlockData::operator!=(const LinkBlockData &other) const {
+    return !(*this == other);
+}
+
 LinkBlockData::~LinkBlockData() {
 }
 

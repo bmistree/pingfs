@@ -16,6 +16,11 @@ class LinkBlockData : BlockData {
     LinkBlockData(const LinkProto& proto);
     LinkBlockData(const std::vector<BlockId>& children);
     virtual ~LinkBlockData();
+
+    void gen_proto(LinkProto* proto) const;
+    bool operator==(const LinkBlockData &other) const;
+    bool operator!=(const LinkBlockData &other) const;
+    
     const std::vector<BlockId>& get_children() const;
 
  private:
