@@ -3,13 +3,15 @@
 
 #include <boost/thread/mutex.hpp>
 
+#include <pingfs/block/block_response.hpp>
+#include <pingfs/block/block_data/block_data.hpp>
+
 #include <memory>
 #include <string>
 #include <unordered_map>
 
-#include "block_data/block_data.hpp"
 #include "block_manager.hpp"
-#include "block_response.hpp"
+
 
 namespace pingfs {
 

@@ -1,4 +1,4 @@
-#include <pingfs/block/block_manager.hpp>
+#include <pingfs/block/block_manager/block_manager.hpp>
 
 namespace pingfs {
 

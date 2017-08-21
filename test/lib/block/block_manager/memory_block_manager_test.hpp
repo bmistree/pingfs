@@ -4,7 +4,7 @@
 #include <pingfs/block/block.hpp>
 #include <pingfs/block/block_request.hpp>
 #include <pingfs/block/block_response.hpp>
-#include <pingfs/block/memory_block_manager.hpp>
+#include <pingfs/block/block_manager/memory_block_manager.hpp>
 #include <pingfs/block/block_data/file_contents_block_data.hpp>
 
 #include <memory>

@@ -1,4 +1,4 @@
-#include <pingfs/block/memory_block_manager.hpp>
+#include <pingfs/block/block_manager/memory_block_manager.hpp>
 #include <boost/thread/locks.hpp>
 
 #include <memory>
