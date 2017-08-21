@@ -15,6 +15,6 @@ ALL_FILES+=($(find $TEST_DIR -name *.hpp))
 ALL_FILES+=($(find $TEST_DIR -name *.cc))
 
 python $DIR/../deps/cpplint/cpplint.py \
+       --verbose 0 \
        --filter -legal/copyright,-build/c++11 \
        ${ALL_FILES[@]}
-
