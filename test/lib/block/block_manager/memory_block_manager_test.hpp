@@ -16,8 +16,7 @@
 std::shared_ptr<const pingfs::FileContentsBlockData> test_file_contents_proto(
     const std::string& data) {
     return std::make_shared<const pingfs::FileContentsBlockData>(
-        pingfs::FileContentsBlockData(
-            std::make_shared<const std::string>(data)));
+        std::make_shared<const std::string>(data));
 }
 
 /**

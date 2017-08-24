@@ -15,8 +15,7 @@
 std::shared_ptr<const pingfs::BlockData> test_dir_data(
     const std::string& dirname) {
     std::vector<pingfs::BlockId> children;
-    return std::make_shared<const pingfs::DirBlockData>(
-        pingfs::DirBlockData(dirname, children));
+    return std::make_shared<const pingfs::DirBlockData>(dirname, children);
 }
 
 /**

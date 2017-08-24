@@ -12,23 +12,22 @@ std::shared_ptr<const BlockData> BlockDataFactory::generate(
     const BlockDataProto& proto) {
 
     if (proto.has_dir()) {
-        return std::make_shared<const DirBlockData>(
-            DirBlockData(proto.dir()));
+        return std::make_shared<const DirBlockData>(proto.dir());
     }
 
     if (proto.has_file_contents()) {
         return std::make_shared<const FileContentsBlockData>(
-            FileContentsBlockData(proto.file_contents()));
+            proto.file_contents());
     }
 
     if (proto.has_file_start()) {
         return std::make_shared<const FileStartBlockData>(
-            FileStartBlockData(proto.file_start()));
+            proto.file_start());
     }
 
     if (proto.has_link()) {
         return std::make_shared<const LinkBlockData>(
-            LinkBlockData(proto.link()));
+            proto.link());
     }
 
     throw "Unknown protocol buffer to deserialize";
