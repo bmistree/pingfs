@@ -8,7 +8,7 @@ uint16_t EchoRequest::checksum(uint16_t identifier,
     // mathematical operation on the data, whose value shouldn't
     // depend on endianness.
     uint32_t sum = (TYPE << 8) + CODE + identifier + sequence_number;
-    for (unsigned int i = 0; i < body.size(); ++i) {
+    for (std::size_t i = 0; i < body.size(); ++i) {
         uint8_t val = static_cast<uint8_t>(body[i]);
         sum += ((i % 2) == 0) ? (val << 8) : val;
     }
