@@ -39,7 +39,7 @@ TEST(MemoryBlockManager, RetrieveBlock) {
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
         test_file_contents_proto("testing");
     const pingfs::Block created_block = manager.create_block(test_data);
-    pingfs::BlockRequest block_request({created_block.get_block_id() });
+    pingfs::BlockRequest block_request({created_block.get_id() });
 
     std::shared_ptr<const pingfs::BlockResponse> response =
         manager.get_blocks(block_request);

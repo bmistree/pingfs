@@ -26,7 +26,7 @@ const Block MemoryBlockManager::create_block(
         std::make_shared<const Block>(get_next_block_id(), data);
     {
         boost::mutex::scoped_lock map_lock(map_mutex_);
-        map_[block->get_block_id()] = block;
+        map_[block->get_id()] = block;
     }
     return *block;
 }

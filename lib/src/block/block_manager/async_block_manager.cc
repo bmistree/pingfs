@@ -12,19 +12,19 @@ AsyncBlockManager::~AsyncBlockManager() {
 
 void AsyncBlockManager::process(const std::shared_ptr<const Block>& block) {
     boost::mutex::scoped_lock scope(map_mutex_);
-    if (waiting_.find(block->get_block_id()) == waiting_.end()) {
+    if (waiting_.find(block->get_id()) == waiting_.end()) {
         return;
     }
 
     std::vector<std::shared_ptr<AsyncResponse>>& waiting_vec =
-        waiting_[block->get_block_id()];
+        waiting_[block->get_id()];
 
     for (auto iter = waiting_vec.cbegin();
          iter != waiting_vec.cend(); ++iter) {
         (*iter)->update(block);
     }
 
-    waiting_.erase(block->get_block_id());
+    waiting_.erase(block->get_id());
 }
 
 std::shared_ptr<const BlockResponse> AsyncBlockManager::get_blocks(

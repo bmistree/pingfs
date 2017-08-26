@@ -59,14 +59,14 @@ TEST(AsyncBlockManager, GetBlock) {
             std::this_thread::sleep_for(std::chrono::seconds{1});
             std::shared_ptr<const pingfs::Block> b_ptr =
                 std::make_shared<const pingfs::Block>(
-                    block.get_block_id(), data);
+                    block.get_id(), data);
             manager.process(b_ptr);
         });
     t.detach();
 
     std::shared_ptr<const pingfs::BlockResponse> response =
         manager.get_blocks(
-            pingfs::BlockRequest({block.get_block_id()}));
+            pingfs::BlockRequest({block.get_id()}));
     const std::vector<std::shared_ptr<const pingfs::Block>>& blocks =
         response->get_blocks();
     ASSERT_EQ(blocks.size(), 1u);

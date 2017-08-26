@@ -37,10 +37,10 @@ void AsyncResponse::notify_if_complete() {
 
 void AsyncResponse::update(std::shared_ptr<const Block> block) {
     boost::mutex::scoped_lock scoped_lock(mutex_);
-    if (waiting_on_.find(block->get_block_id()) == waiting_on_.end()) {
+    if (waiting_on_.find(block->get_id()) == waiting_on_.end()) {
         return;
     }
-    waiting_on_.erase(block->get_block_id());
+    waiting_on_.erase(block->get_id());
     blocks_.push_back(block);
     notify_if_complete();
 }

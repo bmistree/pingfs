@@ -16,7 +16,7 @@ Block::Block(BlockId block_id, std::shared_ptr<const BlockData> data)
     data_(data) {
 }
 
-BlockId Block::get_block_id() const {
+BlockId Block::get_id() const {
     return block_id_;
 }
 
