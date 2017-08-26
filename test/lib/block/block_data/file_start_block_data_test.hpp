@@ -7,11 +7,7 @@
 #include <vector>
 
 TEST(FileStartBlockData, SerializeDesrialize) {
-    std::vector<pingfs::BlockId> children;
-    children.push_back(3);
-    children.push_back(4);
-    children.push_back(88);
-    pingfs::FileStartBlockData original("test", children);
+    pingfs::FileStartBlockData original("test", { 3u, 4u, 88u });
 
     pingfs::FileStartProto proto;
     original.gen_proto(&proto);

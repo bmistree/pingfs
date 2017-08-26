@@ -6,17 +6,14 @@
 #include <vector>
 
 TEST(DirBlockData, Construct) {
-    std::vector<pingfs::BlockId> children;
-    children.push_back(55);
+    std::vector<pingfs::BlockId> children({55u});
     pingfs::DirBlockData data("name", children);
     ASSERT_EQ(data.get_dirname(), "name");
     ASSERT_EQ(data.get_children(), children);
 }
 
 TEST(DirBlockData, SerializeDesrialize) {
-    std::vector<pingfs::BlockId> children;
-    children.push_back(55);
-    pingfs::DirBlockData original("name", children);
+    pingfs::DirBlockData original("name", { 55u });
 
     pingfs::DirProto proto;
     original.gen_proto(&proto);

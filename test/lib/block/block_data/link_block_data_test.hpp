@@ -6,11 +6,7 @@
 #include <vector>
 
 TEST(LinkBlockData, SerializeDesrialize) {
-    std::vector<pingfs::BlockId> children;
-    children.push_back(3);
-    children.push_back(4);
-    children.push_back(88);
-    pingfs::LinkBlockData original(children);
+    pingfs::LinkBlockData original({ 3u, 4u, 88u });
 
     pingfs::LinkProto proto;
     original.gen_proto(&proto);

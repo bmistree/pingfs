@@ -64,11 +64,9 @@ TEST(AsyncBlockManager, GetBlock) {
         });
     t.detach();
 
-    std::vector<pingfs::BlockId> request_ids;
-    request_ids.push_back(block.get_block_id());
-    pingfs::BlockRequest request(request_ids);
     std::shared_ptr<const pingfs::BlockResponse> response =
-        manager.get_blocks(request);
+        manager.get_blocks(
+            pingfs::BlockRequest({block.get_block_id()}));
     const std::vector<std::shared_ptr<const pingfs::Block>>& blocks =
         response->get_blocks();
     ASSERT_EQ(blocks.size(), 1u);

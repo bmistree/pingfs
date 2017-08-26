@@ -14,8 +14,7 @@
 
 
 TEST(AsyncResponse, TestEmpty) {
-    std::vector<pingfs::BlockId> wanted_blocks;
-    pingfs::BlockRequest request(wanted_blocks);
+    pingfs::BlockRequest request({});
     pingfs::AsyncResponse response(request);
     std::shared_ptr<const pingfs::BlockResponse> block_response =
         response.get_future().get();
@@ -23,9 +22,7 @@ TEST(AsyncResponse, TestEmpty) {
 }
 
 TEST(AsyncResponse, TestUpdate) {
-    std::vector<pingfs::BlockId> wanted_blocks;
-    wanted_blocks.push_back(5);
-    pingfs::BlockRequest request(wanted_blocks);
+    pingfs::BlockRequest request({ 5u });
     pingfs::AsyncResponse response(request);
 
     std::shared_ptr<const pingfs::FileContentsBlockData> block_data =
