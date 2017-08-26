@@ -7,6 +7,10 @@ FileContentsBlockData::FileContentsBlockData(const FileContentsProto& proto)
   : FileContentsBlockData(std::make_shared<const std::string>(proto.data())) {
 }
 
+FileContentsBlockData::FileContentsBlockData(const std::string& data)
+  : FileContentsBlockData(std::make_shared<const std::string>(data)) {
+}
+
 FileContentsBlockData::FileContentsBlockData(
     std::shared_ptr<const std::string> data)
   : data_(data) {

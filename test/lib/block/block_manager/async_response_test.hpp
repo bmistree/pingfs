@@ -26,8 +26,7 @@ TEST(AsyncResponse, TestUpdate) {
     pingfs::AsyncResponse response(request);
 
     std::shared_ptr<const pingfs::FileContentsBlockData> block_data =
-        std::make_shared<const pingfs::FileContentsBlockData>(
-            std::make_shared<const std::string>("some data"));
+        std::make_shared<const pingfs::FileContentsBlockData>("some data");
 
     std::shared_ptr<const pingfs::Block> block =
         std::make_shared<const pingfs::Block>(5, block_data);

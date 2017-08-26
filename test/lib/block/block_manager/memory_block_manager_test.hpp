@@ -13,11 +13,6 @@
 
 #include "gtest/gtest.h"
 
-std::shared_ptr<const pingfs::FileContentsBlockData> test_file_contents_proto(
-    const std::string& data) {
-    return std::make_shared<const pingfs::FileContentsBlockData>(
-        std::make_shared<const std::string>(data));
-}
 
 /**
  * Ensures that created blocks maintain data.
@@ -25,7 +20,7 @@ std::shared_ptr<const pingfs::FileContentsBlockData> test_file_contents_proto(
 TEST(MemoryBlockManager, CreateBlock) {
     pingfs::MemoryBlockManager manager;
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
-        test_file_contents_proto("testing");
+        std::make_shared<const pingfs::FileContentsBlockData>("testing");
     const pingfs::Block block = manager.create_block(test_data);
     ASSERT_EQ(*test_data, *block.get_data());
 }
@@ -37,7 +32,7 @@ TEST(MemoryBlockManager, RetrieveBlock) {
     pingfs::MemoryBlockManager manager;
 
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
-        test_file_contents_proto("testing");
+        std::make_shared<const pingfs::FileContentsBlockData>("testing");
     const pingfs::Block created_block = manager.create_block(test_data);
     pingfs::BlockRequest block_request({created_block.get_id() });
 

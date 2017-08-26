@@ -47,8 +47,7 @@ class TestAsyncBlockManager : public pingfs::AsyncBlockManager {
 TEST(AsyncBlockManager, GetBlock) {
     TestAsyncBlockManager manager;
     std::shared_ptr<const pingfs::FileContentsBlockData> data =
-        std::make_shared<const pingfs::FileContentsBlockData>(
-            std::make_shared<const std::string>("abc"));
+        std::make_shared<const pingfs::FileContentsBlockData>("abc");
 
     const pingfs::Block block = manager.create_block(data);
 
