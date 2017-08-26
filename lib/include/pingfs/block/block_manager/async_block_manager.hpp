@@ -26,7 +26,8 @@ class AsyncBlockManager :
 
  public:
     // BlockManager overrides
-    const BlockResponse get_blocks(const BlockRequest& block_request) override;
+    std::shared_ptr<const BlockResponse> get_blocks(
+        const BlockRequest& block_request) override;
 
  public:
     // Subscriber overrides

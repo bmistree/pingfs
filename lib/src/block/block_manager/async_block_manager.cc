@@ -27,7 +27,7 @@ void AsyncBlockManager::process(const std::shared_ptr<const Block>& block) {
     waiting_.erase(block->get_block_id());
 }
 
-const BlockResponse AsyncBlockManager::get_blocks(
+std::shared_ptr<const BlockResponse> AsyncBlockManager::get_blocks(
     const BlockRequest& block_request) {
 
     const std::vector<BlockId>& blocks = block_request.get_blocks();
@@ -43,10 +43,7 @@ const BlockResponse AsyncBlockManager::get_blocks(
             resp_vec.push_back(resp_ptr);
         }
     }
-
-    // FIXME: consider changing to return the shared pointer
-    // directly.
-    return *(resp_ptr->get_future().get());
+    return resp_ptr->get_future().get();
 }
 
 }  // namespace pingfs

@@ -44,10 +44,11 @@ TEST(MemoryBlockManager, RetrieveBlock) {
     block_ids.push_back(created_block.get_block_id());
     pingfs::BlockRequest block_request(block_ids);
 
-    const pingfs::BlockResponse response = manager.get_blocks(block_request);
+    std::shared_ptr<const pingfs::BlockResponse> response =
+        manager.get_blocks(block_request);
 
     const std::vector<std::shared_ptr<const pingfs::Block>>& retrieved_blocks =
-        response.get_blocks();
+        response->get_blocks();
 
     ASSERT_EQ(retrieved_blocks.size(), 1u);
     ASSERT_EQ(*(retrieved_blocks[0]), created_block);

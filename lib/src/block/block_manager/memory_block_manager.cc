@@ -36,7 +36,7 @@ void MemoryBlockManager::free_block(BlockId block_id) {
     map_.erase(block_id);
 }
 
-const BlockResponse MemoryBlockManager::get_blocks(
+std::shared_ptr<const BlockResponse> MemoryBlockManager::get_blocks(
     const BlockRequest& block_request) {
     std::vector<std::shared_ptr<const Block>> retrieved_blocks;
     const std::vector<BlockId>& request_blocks = block_request.get_blocks();
@@ -44,7 +44,7 @@ const BlockResponse MemoryBlockManager::get_blocks(
          iter != request_blocks.cend(); ++iter) {
         retrieved_blocks.push_back(map_[*iter]);
     }
-    return BlockResponse(retrieved_blocks);
+    return std::make_shared<const BlockResponse>(retrieved_blocks);
 }
 
 }  // namespace pingfs
