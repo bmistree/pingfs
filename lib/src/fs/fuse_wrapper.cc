@@ -26,6 +26,14 @@ int getattr(const char *path, struct stat *stbuf) {
     return global_wrapper->getattr(path, stbuf);
 }
 
+int mkdir(const char *path, mode_t mode) {
+    return global_wrapper->mkdir(path, mode);
+}
+
+int rmdir(const char *path) {
+    return global_wrapper->rmdir(path);
+}
+
 }  // namespace fuse_wrapper
 
 

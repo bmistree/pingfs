@@ -49,6 +49,13 @@ class DummyFactory : public pingfs::FuseWrapper {
         stbuf->st_ctime = time(NULL);
         return 0;
     }
+
+    int mkdir(const char *path, mode_t mode) override {
+        return 0;
+    }
+    int rmdir(const char *path) override {
+        return 0;
+    }
 };
 
 int main(int argc, char** argv) {
