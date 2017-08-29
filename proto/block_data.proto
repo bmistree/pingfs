@@ -33,3 +33,15 @@ message FileStartProto {
 message FileContentsProto {
     optional bytes data = 1;
 }
+
+enum ReadWriteExecuteProto {
+    UNKNOWN = 1;
+    NONE = 2;
+    READ = 3;
+    READ_WRITE = 4;
+    READ_EXECUTE = 5;
+    READ_WRITE_EXECUTE = 6;
+    WRITE = 7;
+    WRITE_EXECUTE = 8;
+    EXECUTE = 9;
+}
