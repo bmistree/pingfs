@@ -45,3 +45,9 @@ enum ReadWriteExecuteProto {
     WRITE_EXECUTE = 8;
     EXECUTE = 9;
 }
+
+message ModeProto {
+    optional ReadWriteExecuteProto user_mode = 1;
+    optional ReadWriteExecuteProto group_mode = 2;
+    optional ReadWriteExecuteProto other_mode = 3;
+}
