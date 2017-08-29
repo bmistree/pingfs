@@ -10,7 +10,7 @@ namespace pingfs {
 class BlockDataFactory {
  public:
     static std::shared_ptr<const BlockData> generate(
-        const BlockDataProto& proto);
+        const proto::BlockDataProto& proto);
 
  private:
     BlockDataFactory() {

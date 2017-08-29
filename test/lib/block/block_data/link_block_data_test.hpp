@@ -8,7 +8,7 @@
 TEST(LinkBlockData, SerializeDesrialize) {
     pingfs::LinkBlockData original({ 3u, 4u, 88u });
 
-    pingfs::LinkProto proto;
+    pingfs::proto::LinkProto proto;
     original.gen_proto(&proto);
     ASSERT_EQ(pingfs::LinkBlockData(proto), original);
 }

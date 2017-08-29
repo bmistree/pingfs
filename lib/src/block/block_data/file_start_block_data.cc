@@ -3,7 +3,8 @@
 
 namespace pingfs {
 
-FileStartBlockData::FileStartBlockData(const FileStartProto& proto)
+FileStartBlockData::FileStartBlockData(
+    const proto::FileStartProto& proto)
   : FileStartBlockData(proto.filename(),
       BlockData::iters_to_vector(proto.children())) {
 }
@@ -17,7 +18,8 @@ FileStartBlockData::FileStartBlockData(
 FileStartBlockData::~FileStartBlockData() {
 }
 
-void FileStartBlockData::gen_proto(FileStartProto* proto) const {
+void FileStartBlockData::gen_proto(
+    proto::FileStartProto* proto) const {
     proto->set_filename(filename_);
     for (auto iter = children_.cbegin(); iter != children_.cend();
          ++iter) {

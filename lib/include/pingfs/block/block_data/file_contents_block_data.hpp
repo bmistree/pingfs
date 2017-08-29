@@ -13,11 +13,12 @@ namespace pingfs {
 
 class FileContentsBlockData : public BlockData {
  public:
-    explicit FileContentsBlockData(const FileContentsProto& proto);
+    explicit FileContentsBlockData(
+        const proto::FileContentsProto& proto);
     explicit FileContentsBlockData(const std::string& data);
     explicit FileContentsBlockData(std::shared_ptr<const std::string> data);
     virtual ~FileContentsBlockData();
-    void gen_proto(FileContentsProto* proto) const;
+    void gen_proto(proto::FileContentsProto* proto) const;
     bool operator==(const BlockData &other) const;
     bool operator!=(const BlockData &other) const;
 

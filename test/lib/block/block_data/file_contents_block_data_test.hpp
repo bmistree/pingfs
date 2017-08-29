@@ -8,7 +8,7 @@
 
 TEST(FileContentsBlockData, SerializeDesrialize) {
     pingfs::FileContentsBlockData original("some data");
-    pingfs::FileContentsProto proto;
+    pingfs::proto::FileContentsProto proto;
     original.gen_proto(&proto);
     ASSERT_EQ(pingfs::FileContentsBlockData(proto), original);
 }

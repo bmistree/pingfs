@@ -11,7 +11,7 @@ namespace pingfs {
 
 class Block {
  public:
-    explicit Block(const BlockProto& proto);
+    explicit Block(const proto::BlockProto& proto);
     Block(BlockId block_id, const BlockData& data);
     Block(BlockId block_id, std::shared_ptr<const BlockData> data);
     ~Block();

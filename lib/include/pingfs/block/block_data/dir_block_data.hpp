@@ -12,7 +12,7 @@ namespace pingfs {
 
 class DirBlockData : public BlockData {
  public:
-    explicit DirBlockData(const DirProto& proto);
+    explicit DirBlockData(const proto::DirProto& proto);
     DirBlockData(const std::string& dirname,
         const std::vector<BlockId>& children);
     virtual ~DirBlockData();
@@ -23,7 +23,7 @@ class DirBlockData : public BlockData {
     bool operator==(const BlockData &other) const;
     bool operator!=(const BlockData &other) const;
 
-    void gen_proto(DirProto* proto) const;
+    void gen_proto(proto::DirProto* proto) const;
 
  private:
     const std::string dirname_;

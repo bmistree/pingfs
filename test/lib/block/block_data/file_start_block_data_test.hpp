@@ -9,7 +9,7 @@
 TEST(FileStartBlockData, SerializeDesrialize) {
     pingfs::FileStartBlockData original("test", { 3u, 4u, 88u });
 
-    pingfs::FileStartProto proto;
+    pingfs::proto::FileStartProto proto;
     original.gen_proto(&proto);
     ASSERT_EQ(pingfs::FileStartBlockData(proto), original);
 }

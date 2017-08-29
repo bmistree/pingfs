@@ -12,12 +12,13 @@ namespace pingfs {
 
 class FileStartBlockData : public BlockData {
  public:
-    explicit FileStartBlockData(const FileStartProto& proto);
+    explicit FileStartBlockData(
+        const proto::FileStartProto& proto);
     FileStartBlockData(const std::string& filename,
         const std::vector<BlockId>& children);
     virtual ~FileStartBlockData();
 
-    void gen_proto(FileStartProto* proto) const;
+    void gen_proto(proto::FileStartProto* proto) const;
     bool operator==(const BlockData &other) const;
     bool operator!=(const BlockData &other) const;
 

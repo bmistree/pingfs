@@ -3,7 +3,8 @@
 
 namespace pingfs {
 
-FileContentsBlockData::FileContentsBlockData(const FileContentsProto& proto)
+FileContentsBlockData::FileContentsBlockData(
+    const proto::FileContentsProto& proto)
   : FileContentsBlockData(std::make_shared<const std::string>(proto.data())) {
 }
 
@@ -33,7 +34,8 @@ bool FileContentsBlockData::operator!=(const BlockData &other) const {
 }
 
 
-void FileContentsBlockData::gen_proto(FileContentsProto* proto) const {
+void FileContentsBlockData::gen_proto(
+    proto::FileContentsProto* proto) const {
     proto->set_data(*data_);
 }
 

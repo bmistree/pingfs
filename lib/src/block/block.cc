@@ -7,7 +7,7 @@
 
 namespace pingfs {
 
-Block::Block(const BlockProto& proto)
+Block::Block(const proto::BlockProto& proto)
   : Block(proto.id(), BlockDataFactory::generate(proto.data())) {
 }
 

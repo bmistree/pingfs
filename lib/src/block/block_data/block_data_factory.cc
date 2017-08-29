@@ -9,7 +9,7 @@
 namespace pingfs {
 
 std::shared_ptr<const BlockData> BlockDataFactory::generate(
-    const BlockDataProto& proto) {
+    const proto::BlockDataProto& proto) {
 
     if (proto.has_dir()) {
         return std::make_shared<const DirBlockData>(proto.dir());

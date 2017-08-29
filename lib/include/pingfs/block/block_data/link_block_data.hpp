@@ -12,11 +12,11 @@ namespace pingfs {
 
 class LinkBlockData : public BlockData {
  public:
-    explicit LinkBlockData(const LinkProto& proto);
+    explicit LinkBlockData(const proto::LinkProto& proto);
     explicit LinkBlockData(const std::vector<BlockId>& children);
     virtual ~LinkBlockData();
 
-    void gen_proto(LinkProto* proto) const;
+    void gen_proto(proto::LinkProto* proto) const;
     bool operator==(const BlockData &other) const;
     bool operator!=(const BlockData &other) const;
 

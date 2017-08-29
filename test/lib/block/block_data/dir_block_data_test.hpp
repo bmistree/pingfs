@@ -15,7 +15,7 @@ TEST(DirBlockData, Construct) {
 TEST(DirBlockData, SerializeDesrialize) {
     pingfs::DirBlockData original("name", { 55u });
 
-    pingfs::DirProto proto;
+    pingfs::proto::DirProto proto;
     original.gen_proto(&proto);
     ASSERT_EQ(pingfs::DirBlockData(proto), original);
 }

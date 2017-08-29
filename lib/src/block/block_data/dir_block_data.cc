@@ -3,7 +3,7 @@
 
 namespace pingfs {
 
-DirBlockData::DirBlockData(const DirProto& proto)
+DirBlockData::DirBlockData(const proto::DirProto& proto)
   : DirBlockData(proto.dirname(),
       BlockData::iters_to_vector(proto.children())) {
 }
@@ -17,7 +17,7 @@ DirBlockData::DirBlockData(
 DirBlockData::~DirBlockData() {
 }
 
-void DirBlockData::gen_proto(DirProto* proto) const {
+void DirBlockData::gen_proto(proto::DirProto* proto) const {
     proto->set_dirname(dirname_);
     for (auto iter = children_.cbegin(); iter != children_.cend();
          ++iter) {
