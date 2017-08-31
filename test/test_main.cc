@@ -8,6 +8,7 @@
 #include "lib/block/block_data/link_block_data_test.hpp"
 #include "lib/block/block_data/read_write_execute_test.hpp"
 #include "lib/block/block_data/mode_test.hpp"
+#include "lib/block/block_data/stat_test.hpp"
 #include "lib/block/block_manager/async_response_test.hpp"
 #include "lib/block/block_manager/async_block_manager_test.hpp"
 
