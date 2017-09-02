@@ -21,6 +21,10 @@ Mode::Mode(const proto::ModeProto& proto)
       FileTypeFactory::from_proto(proto.file_type())) {
 }
 
+Mode::Mode(const mode_t mode) {
+    lkjs;
+}
+
 Mode::~Mode() {
 }
 
@@ -65,6 +69,85 @@ const ReadWriteExecute& Mode::get_other_mode() const {
 
 const FileType& Mode::get_file_type() const {
     return file_type_;
+}
+
+static mode_t get_user_mode(const ReadWriteExecute& read_write_execute) {
+    switch (read_write_execute_) {
+      case ReadWriteExectue::NONE:
+        return 0;
+      case ReadWriteExecute::READ:
+        return S_IRUSR;
+      case ReadWriteExecute::READ_WRITE:
+        return S_IRUSR | S_IWUSR;
+      case ReadWriteExecute::READ_EXECUTE:
+        return S_IRUSR | S_XUSR;
+      case ReadWriteExecute::READ_WRITE_EXECUTE:
+        return S_IRUSR | S_IWUSR | S_XUSR;
+      case ReadWriteExecute::WRITE:
+        return S_IWUSR;
+      case ReadWriteExecute::WRITE_EXECUTE:
+        return S_IWUSR | S_XUSR;
+      case ReadWriteExecute::EXECUTE:
+        return S_XUSR;
+      default:
+        throw "Unknown mode";
+    }
+}
+
+static mode_t get_group_mode(const ReadWriteExecute& read_write_execute) {
+    switch (read_write_execute) {
+      case ReadWriteExectue::NONE:
+        return 0;
+      case ReadWriteExecute::READ:
+        return S_IRGRP;
+      case ReadWriteExecute::READ_WRITE:
+        return S_IRGRP | S_IWGRP;
+      case ReadWriteExecute::READ_EXECUTE:
+        return S_IRGRP | S_XGRP;
+      case ReadWriteExecute::READ_WRITE_EXECUTE:
+        return S_IRGRP | S_IWGRP | S_XGRP;
+      case ReadWriteExecute::WRITE:
+        return S_IWGRP;
+      case ReadWriteExecute::WRITE_EXECUTE:
+        return S_IWGRP | S_XGRP;
+      case ReadWriteExecute::EXECUTE:
+        return S_XGRP;
+      default:
+        throw "Unknown mode";
+    }
+}
+
+static mode_t get_other_mode(const ReadWriteExecute& read_write_execute) {
+    switch (read_write_execute) {
+      case ReadWriteExectue::NONE:
+        return 0;
+      case ReadWriteExecute::READ:
+        return S_IROTH;
+      case ReadWriteExecute::READ_WRITE:
+        return S_IROTH | S_IWOTH;
+      case ReadWriteExecute::READ_EXECUTE:
+        return S_IROTH | S_XOTH;
+      case ReadWriteExecute::READ_WRITE_EXECUTE:
+        return S_IROTH | S_IWOTH | S_XOTH;
+      case ReadWriteExecute::WRITE:
+        return S_IWOTH;
+      case ReadWriteExecute::WRITE_EXECUTE:
+        return S_IWOTH | S_XOTH;
+      case ReadWriteExecute::EXECUTE:
+        return S_XOTH;
+        break;
+      default:
+        throw "Unknown mode";
+    }
+}
+
+mode_t Mode::to_mode() const {
+    mode_t m = 0;
+    m |= FileTypeFactory::to_mode(file_type_);
+    m |= get_user_mode(user_mode_);
+    m |= get_group_mode(group_mode_);
+    m |= get_other_mode(other_mode_);
+    return m;
 }
 
 }  // namespace pingfs

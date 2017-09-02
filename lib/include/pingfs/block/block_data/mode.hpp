@@ -2,6 +2,7 @@
 #define _MODE_
 
 #include <block_data.pb.h>
+#include <sys/stat.h>
 
 #include "file_type.hpp"
 #include "read_write_execute.hpp"
@@ -15,6 +16,7 @@ class Mode {
         const ReadWriteExecute& other_mode,
         const FileType& file_type);
     explicit Mode(const proto::ModeProto& proto);
+    explicit Mode(const mode_t mode);
 
     ~Mode();
 
@@ -26,6 +28,8 @@ class Mode {
     const ReadWriteExecute& get_group_mode() const;
     const ReadWriteExecute& get_other_mode() const;
     const FileType& get_file_type() const;
+
+    mode_t to_mode() const;
 
  private:
     const ReadWriteExecute user_mode_;

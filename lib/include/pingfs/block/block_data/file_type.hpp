@@ -2,6 +2,7 @@
 #define _FILE_TYPE_
 
 #include <block_data.pb.h>
+#include <sys/stat.h>
 
 namespace pingfs {
 
@@ -21,6 +22,17 @@ class FileTypeFactory {
             return FileType::REGULAR;
           default:
             throw "Unknown proto";
+        }
+    }
+
+    static mode_t to_mode(const FileType& file_type) {
+        switch (file_type) {
+          case FileType::DIR:
+            return S_IFDIR;
+          case FileType::REGULAR:
+            return S_IFREG;
+          default:
+            throw "Unknown value";
         }
     }
 
