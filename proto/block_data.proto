@@ -34,8 +34,14 @@ message FileContentsProto {
     optional bytes data = 1;
 }
 
+enum FileTypeProto {
+    FILE_TYPE_PROTO_UNKNOWN = 1;
+    DIR = 2;
+    REGULAR = 3;
+}
+
 enum ReadWriteExecuteProto {
-    UNKNOWN = 1;
+    READ_WRITE_EXECUTE_PROTO_UNKNOWN = 1;
     NONE = 2;
     READ = 3;
     READ_WRITE = 4;
