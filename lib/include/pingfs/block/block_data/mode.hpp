@@ -29,7 +29,7 @@ class Mode {
     const ReadWriteExecute& get_other_mode() const;
     const FileType& get_file_type() const;
 
-    mode_t to_mode() const;
+    mode_t to_mode_t() const;
 
  private:
     const ReadWriteExecute user_mode_;

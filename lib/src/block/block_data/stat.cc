@@ -54,6 +54,10 @@ const Mode& Stat::get_mode() const {
     return mode_;
 }
 
+mode_t Stat::get_mode_t() const {
+    return mode_.to_mode_t();
+}
+
 uint32_t Stat::get_uid() const {
     return uid_;
 }

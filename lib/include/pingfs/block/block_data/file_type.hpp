@@ -36,6 +36,16 @@ class FileTypeFactory {
         }
     }
 
+    static FileType from_mode_t(const mode_t& mode_t) {
+        if ((mode_t & S_IFDIR) > 0) {
+            return FileType::DIR;
+        }
+        if ((mode_t & S_IFREG) > 0) {
+            return FileType::REGULAR;
+        }
+        throw "Unknown mode";
+    }
+
     static void gen_proto(proto::FileTypeProto* proto,
         const FileType& val) {
         switch (val) {

@@ -29,6 +29,7 @@ class Stat {
     time_t get_access_time() const;
     time_t get_mod_time() const;
     time_t get_status_change_time() const;
+    mode_t get_mode_t() const;
 
  private:
     const Mode mode_;
