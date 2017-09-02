@@ -11,8 +11,7 @@ message BlockDataProto {
     oneof data {
         DirProto dir = 1;
         LinkProto link = 2;
-        FileStartProto file_start = 3;
-        FileContentsProto file_contents = 4;
+        FileContentsProto file_contents = 3;
     }
 }
 
@@ -23,11 +22,6 @@ message DirProto {
 
 message LinkProto {
     repeated uint64 children = 1;
-}
-
-message FileStartProto {
-    optional string filename = 1;
-    repeated uint64 children = 2;
 }
 
 message FileContentsProto {
