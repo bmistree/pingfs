@@ -11,7 +11,8 @@ TEST(Stat, SerializeDesrialize) {
     pingfs::Stat stat(
         pingfs::Mode(pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
             pingfs::ReadWriteExecute::READ_EXECUTE,
-            pingfs::ReadWriteExecute::READ),
+            pingfs::ReadWriteExecute::READ,
+            pingfs::FileType::REGULAR),
         33 /* uid */, 55 /* gid */, 100 /* size */,
         1011 /* access_time */, 1023 /* mod_time */,
         355 /* status_change_time */);
