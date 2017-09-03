@@ -9,14 +9,14 @@ message BlockProto {
 
 message BlockDataProto {
     oneof data {
-        DirProto dir = 1;
+        DirFileProto dir_file = 1;
         LinkProto link = 2;
         FileContentsProto file_contents = 3;
     }
 }
 
-message DirProto {
-    optional string dirname = 1;
+message DirFileProto {
+    optional string name = 1;
     repeated uint64 children = 2;
 }
 

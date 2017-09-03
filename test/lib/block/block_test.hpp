@@ -4,7 +4,7 @@
 #include <block_data.pb.h>
 
 #include <pingfs/block/block.hpp>
-#include <pingfs/block/block_data/dir_block_data.hpp>
+#include <pingfs/block/block_data/dir_file_block_data.hpp>
 
 #include <string>
 #include <vector>
@@ -13,16 +13,16 @@
 
 
 std::shared_ptr<const pingfs::BlockData> test_dir_data(
-    const std::string& dirname) {
+    const std::string& name) {
     std::vector<pingfs::BlockId> children;
-    return std::make_shared<const pingfs::DirBlockData>(dirname, children);
+    return std::make_shared<const pingfs::DirFileBlockData>(name, children);
 }
 
 /**
  * Ensures that created blocks' equality overrides work.
  */
 TEST(Block, EqualityOverride) {
-    std::shared_ptr<const pingfs::BlockData> data = test_dir_data("dirname");
+    std::shared_ptr<const pingfs::BlockData> data = test_dir_data("name");
     pingfs::Block block_a(1u, data);
     pingfs::Block block_b(1u, data);
     ASSERT_EQ(block_a, block_b);

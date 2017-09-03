@@ -2,7 +2,7 @@
 
 #include "lib/block/block_test.hpp"
 #include "lib/block/block_manager/memory_block_manager_test.hpp"
-#include "lib/block/block_data/dir_block_data_test.hpp"
+#include "lib/block/block_data/dir_file_block_data_test.hpp"
 #include "lib/block/block_data/file_contents_block_data_test.hpp"
 #include "lib/block/block_data/link_block_data_test.hpp"
 #include "lib/block/block_data/read_write_execute_test.hpp"
