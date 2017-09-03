@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "block_data.hpp"
+#include "stat.hpp"
 
 namespace pingfs {
 
@@ -17,11 +18,13 @@ class DirFileBlockData : public BlockData {
  public:
     explicit DirFileBlockData(const proto::DirFileProto& proto);
     DirFileBlockData(const std::string& name,
+        const Stat& stat,
         const std::vector<BlockId>& children);
     virtual ~DirFileBlockData();
 
     const std::string& get_name() const;
     const std::vector<BlockId>& get_children() const;
+    const Stat& get_stat() const;
 
     bool operator==(const BlockData &other) const;
     bool operator!=(const BlockData &other) const;
@@ -33,6 +36,7 @@ class DirFileBlockData : public BlockData {
      * The name of the directory or file that this corresponds to.
      */
     const std::string name_;
+    const Stat stat_;
     const std::vector<BlockId> children_;
 };
 

@@ -10,12 +10,13 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-
+#include "block_data/dir_file_block_data_test.hpp"
 
 std::shared_ptr<const pingfs::BlockData> test_dir_data(
     const std::string& name) {
     std::vector<pingfs::BlockId> children;
-    return std::make_shared<const pingfs::DirFileBlockData>(name, children);
+    return std::make_shared<const pingfs::DirFileBlockData>(
+        name, get_test_stat(), children);
 }
 
 /**
