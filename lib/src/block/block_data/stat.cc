@@ -26,6 +26,19 @@ Stat::Stat(const proto::StatProto& proto)
 Stat::~Stat() {
 }
 
+void Stat::update_stat(dev_t dev, ino_t ino, struct stat* stbuf) const {
+    stbuf->st_ino = ino;
+    stbuf->st_dev = dev;
+    stbuf->st_mode = get_mode().to_mode_t();
+    stbuf->st_uid = uid_;
+    stbuf->st_gid = gid_;
+    stbuf->st_size = size_;
+    stbuf->st_atime = access_time_;
+    stbuf->st_mtime = mod_time_;
+    stbuf->st_ctime = status_change_time_;
+    stbuf->st_nlink = 1;
+}
+
 bool Stat::operator==(const Stat& other) const {
     return ((mode_ == other.mode_) &&
         (uid_ == other.uid_) &&

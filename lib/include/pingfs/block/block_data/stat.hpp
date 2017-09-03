@@ -2,6 +2,7 @@
 #define _STAT_
 
 #include <time.h>
+#include <unistd.h>
 #include <block_data.pb.h>
 
 #include "mode.hpp"
@@ -30,6 +31,7 @@ class Stat {
     time_t get_mod_time() const;
     time_t get_status_change_time() const;
     mode_t get_mode_t() const;
+    void update_stat(dev_t dev, ino_t ino, struct stat* stbuf) const;
 
  private:
     const Mode mode_;
