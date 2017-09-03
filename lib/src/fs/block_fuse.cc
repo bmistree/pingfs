@@ -30,10 +30,12 @@ static std::shared_ptr<const BlockData> make_root_block_data() {
         std::vector<BlockId>());
 }
 
-BlockFuse::BlockFuse(std::shared_ptr<BlockManager> block_manager)
+BlockFuse::BlockFuse(std::shared_ptr<BlockManager> block_manager,
+    dev_t dev)
   : block_manager_(block_manager),
     // Populate root of file system with /
-    root_block_(block_manager->create_block(make_root_block_data())) {
+    root_block_(block_manager->create_block(make_root_block_data())),
+    dev_(dev) {
 }
 
 BlockFuse::~BlockFuse() {

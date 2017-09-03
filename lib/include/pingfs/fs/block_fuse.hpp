@@ -4,6 +4,8 @@
 #include <pingfs/block/block.hpp>
 #include <pingfs/block/block_manager/block_manager.hpp>
 
+#include <unistd.h>
+
 #include "fuse_wrapper.hpp"
 
 namespace pingfs {
@@ -13,7 +15,8 @@ namespace pingfs {
  */
 class BlockFuse : public FuseWrapper {
  public:
-    explicit BlockFuse(std::shared_ptr<BlockManager> block_manager);
+    explicit BlockFuse(std::shared_ptr<BlockManager> block_manager,
+        dev_t dev);
     virtual ~BlockFuse();
 
     int getattr(const char *path, struct stat *stbuf) override;
@@ -23,6 +26,7 @@ class BlockFuse : public FuseWrapper {
  private:
     std::shared_ptr<BlockManager> block_manager_;
     Block root_block_;
+    const dev_t dev_;
 };
 
 
