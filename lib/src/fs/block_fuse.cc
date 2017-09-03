@@ -1,6 +1,7 @@
 #include <pingfs/block/block_data/dir_file_block_data.hpp>
 
 #include <pingfs/fs/block_fuse.hpp>
+#include <pingfs/fs/fs_util.hpp>
 #include <pingfs/fs/fuse_wrapper.hpp>
 
 #include <time.h>
@@ -15,7 +16,7 @@ namespace pingfs {
 static std::shared_ptr<const BlockData> make_root_block_data() {
     time_t cur_time = time(NULL);
     return std::make_shared<const DirFileBlockData>(
-        "/",
+        FsUtil::get_separator(),
         Stat(Mode(ReadWriteExecute::READ_WRITE_EXECUTE,
                 ReadWriteExecute::READ_EXECUTE,
                 ReadWriteExecute::EXECUTE,
