@@ -12,6 +12,8 @@
 #include "lib/block/block_manager/async_response_test.hpp"
 #include "lib/block/block_manager/async_block_manager_test.hpp"
 
+#include "lib/fs/fs_util_test.hpp"
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
