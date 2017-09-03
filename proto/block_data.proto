@@ -17,7 +17,8 @@ message BlockDataProto {
 
 message DirFileProto {
     optional string name = 1;
-    repeated uint64 children = 2;
+    optional StatProto stat_proto = 2;
+    repeated uint64 children = 3;
 }
 
 message LinkProto {
