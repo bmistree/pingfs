@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "fuse_wrapper.hpp"
@@ -17,6 +18,9 @@ namespace pingfs {
  * A class that uses a block manager to store file information.
  */
 class BlockFuse : public FuseWrapper {
+ private:
+    using BlockPtr = std::shared_ptr<const Block>;
+
  public:
     explicit BlockFuse(std::shared_ptr<BlockManager> block_manager,
         dev_t dev);
@@ -38,9 +42,28 @@ class BlockFuse : public FuseWrapper {
      * If {@code rel_file_dir_name} is /, then this method returns
      * it directly.
      */
-    std::shared_ptr<const Block> resolve_inode(
-        std::vector<BlockId>* vec,
+    BlockPtr resolve_inode(std::vector<BlockId>* vec,
         const std::string& rel_file_dir_name) const;
+
+    /**
+     * Adds all blocks between the root block and the final inode
+     * block for path to blocks (inclusive for both). The order of
+     * blocks added to blocks matches the order that  blocks were encountered
+     * in the tree. Specifically, the root block will be in position 0
+     * and the final inode will be at the end. If no path exists
+     * (i.e., path doesn't exist), does not modify the blocks vector.
+     *
+     * @param blocks Should be empty when input. If empty when this function
+     * exits, there are no sequences of blocks that represent path (i.e.,
+     * path is invalid, there's some corruption, or operations have changed
+     * the block structure since path was created).
+     */
+    void get_path(const char* path,
+        std::vector<BlockPtr>* blocks) const;
+
+    void get_path_part(const std::string& rel_file_dir_name,
+        BlockPtr from_block,
+        std::vector<BlockPtr>* block_path) const;
 
  private:
     std::shared_ptr<BlockManager> block_manager_;
