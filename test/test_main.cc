@@ -13,6 +13,7 @@
 #include "lib/block/block_manager/async_block_manager_test.hpp"
 
 #include "lib/fs/fs_util_test.hpp"
+#include "lib/fs/block_fuse_test.hpp"
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
