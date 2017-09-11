@@ -187,7 +187,7 @@ void BlockFuse::get_path_part(
     if (rel_file_dir_name == FsUtil::get_separator()) {
         block_path->push_back(
             std::make_shared<Block>(
-                root_block_.get_id(), root_block_.get_data()));
+                root_block_->get_id(), root_block_->get_data()));
         return;
     }
 

@@ -20,7 +20,7 @@ BlockId MemoryBlockManager::get_next_block_id() {
     return next_block_id_++;
 }
 
-const Block MemoryBlockManager::create_block(
+std::shared_ptr<const Block> MemoryBlockManager::create_block(
     std::shared_ptr<const BlockData> data) {
     std::shared_ptr<const Block> block =
         std::make_shared<const Block>(get_next_block_id(), data);
@@ -28,7 +28,7 @@ const Block MemoryBlockManager::create_block(
         boost::mutex::scoped_lock map_lock(map_mutex_);
         map_[block->get_id()] = block;
     }
-    return *block;
+    return block;
 }
 
 void MemoryBlockManager::free_block(BlockId block_id) {

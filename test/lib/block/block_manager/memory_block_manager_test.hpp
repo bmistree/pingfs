@@ -21,8 +21,9 @@ TEST(MemoryBlockManager, CreateBlock) {
     pingfs::MemoryBlockManager manager;
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
         std::make_shared<const pingfs::FileContentsBlockData>("testing");
-    const pingfs::Block block = manager.create_block(test_data);
-    ASSERT_EQ(*test_data, *block.get_data());
+    std::shared_ptr<const pingfs::Block> block =
+        manager.create_block(test_data);
+    ASSERT_EQ(*test_data, *block->get_data());
 }
 
 /**
@@ -33,8 +34,9 @@ TEST(MemoryBlockManager, RetrieveBlock) {
 
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
         std::make_shared<const pingfs::FileContentsBlockData>("testing");
-    const pingfs::Block created_block = manager.create_block(test_data);
-    pingfs::BlockRequest block_request({created_block.get_id() });
+    std::shared_ptr<const pingfs::Block> created_block =
+        manager.create_block(test_data);
+    pingfs::BlockRequest block_request({created_block->get_id() });
 
     std::shared_ptr<const pingfs::BlockResponse> response =
         manager.get_blocks(block_request);
@@ -43,7 +45,7 @@ TEST(MemoryBlockManager, RetrieveBlock) {
         response->get_blocks();
 
     ASSERT_EQ(retrieved_blocks.size(), 1u);
-    ASSERT_EQ(*(retrieved_blocks[0]), created_block);
+    ASSERT_EQ(*(retrieved_blocks[0]), *created_block);
 }
 
 #endif

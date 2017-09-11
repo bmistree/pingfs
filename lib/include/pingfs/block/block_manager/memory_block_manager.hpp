@@ -19,7 +19,8 @@ class MemoryBlockManager : public BlockManager {
  public:
     MemoryBlockManager();
 
-    const Block create_block(std::shared_ptr<const BlockData> data) override;
+    std::shared_ptr<const Block> create_block(
+        std::shared_ptr<const BlockData> data) override;
     void free_block(BlockId block_id) override;
     std::shared_ptr<const BlockResponse> get_blocks(
         const BlockRequest& block_request) override;

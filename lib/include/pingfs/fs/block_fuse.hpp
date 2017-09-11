@@ -67,7 +67,7 @@ class BlockFuse : public FuseWrapper {
 
  private:
     std::shared_ptr<BlockManager> block_manager_;
-    Block root_block_;
+    BlockPtr root_block_;
     const dev_t dev_;
 };
 

@@ -30,9 +30,9 @@ class TestAsyncBlockManager : public pingfs::AsyncBlockManager {
         throw "Should not get here";
     }
 
-    const pingfs::Block create_block(
+    std::shared_ptr<const pingfs::Block> create_block(
         std::shared_ptr<const pingfs::BlockData> data) override {
-        return pingfs::Block(next_block_id_++, data);
+        return std::make_shared<const pingfs::Block>(next_block_id_++, data);
     }
 
  private:
@@ -49,7 +49,8 @@ TEST(AsyncBlockManager, GetBlock) {
     std::shared_ptr<const pingfs::FileContentsBlockData> data =
         std::make_shared<const pingfs::FileContentsBlockData>("abc");
 
-    const pingfs::Block block = manager.create_block(data);
+    std::shared_ptr<const pingfs::Block> block =
+        manager.create_block(data);
 
     // Delay some time and then post the block back to
     // manager.
@@ -58,18 +59,18 @@ TEST(AsyncBlockManager, GetBlock) {
             std::this_thread::sleep_for(std::chrono::seconds{1});
             std::shared_ptr<const pingfs::Block> b_ptr =
                 std::make_shared<const pingfs::Block>(
-                    block.get_id(), data);
+                    block->get_id(), data);
             manager.process(b_ptr);
         });
     t.detach();
 
     std::shared_ptr<const pingfs::BlockResponse> response =
         manager.get_blocks(
-            pingfs::BlockRequest({block.get_id()}));
+            pingfs::BlockRequest({block->get_id()}));
     const std::vector<std::shared_ptr<const pingfs::Block>>& blocks =
         response->get_blocks();
     ASSERT_EQ(blocks.size(), 1u);
-    ASSERT_EQ(*blocks[0], block);
+    ASSERT_EQ(*blocks[0], *block);
 }
 
 
