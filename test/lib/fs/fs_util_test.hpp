@@ -24,4 +24,15 @@ TEST(FsUtil, SeparatePathNestedDirectories) {
         std::vector<std::string>({ "/", "a", "b", "cdef", "g.txt" }));
 }
 
+TEST(FsUtil, Join) {
+    ASSERT_EQ(pingfs::FsUtil::join({"/", "a", "bcd"}), "/a/bcd");
+}
+
+TEST(FsUtil, JoinAndSeparate) {
+    std::string test_path = "/a/b/cdef/g.txt";
+    ASSERT_EQ(pingfs::FsUtil::join(pingfs::FsUtil::separate_path(test_path)),
+        test_path);
+}
+
+
 #endif

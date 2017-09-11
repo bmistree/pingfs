@@ -21,6 +21,8 @@ class FsUtil {
 
     static const std::string& get_separator();
 
+    static const std::string join(const std::vector<std::string>& paths);
+
     ~FsUtil();
  private:
     static const std::string PATH_SEPARATOR;

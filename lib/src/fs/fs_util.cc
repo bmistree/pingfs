@@ -41,4 +41,21 @@ std::vector<std::string> FsUtil::separate_path(
 }
 
 
+const std::string FsUtil::join(const std::vector<std::string>& paths) {
+    std::string joined;
+    for (std::size_t i = 0; i < paths.size() - 1; ++i) {
+        joined += paths[i];
+        if (paths[i] == get_separator()) {
+            // handle the case of a root directory
+            continue;
+        }
+        joined += get_separator();
+    }
+    if (!paths.empty()) {
+        joined += paths[paths.size() - 1];
+    }
+
+    return joined;
+}
+
 }  // namespace pingfs
