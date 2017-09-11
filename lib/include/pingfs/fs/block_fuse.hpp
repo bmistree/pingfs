@@ -33,17 +33,9 @@ class BlockFuse : public FuseWrapper {
  private:
     /**
      * Returns the Block corresponding to the inode for
-     * {@code rel_file_dir_name}, or a wrapped nullptr, if none exists.
-     *
-     * Starts search from the BlockIds in {@code vec} and runs through
-     * all file links until found.
-     *
-     * Note that this method special-cases handling for the root block.
-     * If {@code rel_file_dir_name} is /, then this method returns
-     * it directly.
+     * {@code path}, or a wrapped nullptr, if none exists.
      */
-    BlockPtr resolve_inode(std::vector<BlockId>* vec,
-        const std::string& rel_file_dir_name) const;
+    BlockPtr resolve_inode(const std::string& path) const;
 
     /**
      * Adds all blocks between the root block and the final inode
@@ -64,6 +56,13 @@ class BlockFuse : public FuseWrapper {
     void get_path_part(const std::string& rel_file_dir_name,
         BlockPtr from_block,
         std::vector<BlockPtr>* block_path) const;
+
+    /**
+     * Returns true if {@code path} is a valid path for making a directory
+     * for; false otherwise.
+     */
+    bool mkdir_valid(const char* path,
+        std::vector<BlockPtr>* blocks, std::string* dir_to_make);
 
  private:
     std::shared_ptr<BlockManager> block_manager_;

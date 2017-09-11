@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include <cassert>
-
+#include <iostream>
 
 namespace pingfs {
 
@@ -32,27 +32,36 @@ static bool find_path(
     const Block& target_block,
     std::vector<BlockPtr>* block_path) {
 
-    // try to find a path from one root block to the target;
-    // if that doesn't work go onto the next root block, etc.
     if (from_block->get_id() == target_block.get_id()) {
         // Found target block
         return true;
     }
 
+    // Expand dirs and links when looking for blocks.
     std::shared_ptr<const LinkBlockData> link = try_cast_link(from_block);
-    if (!link) {
-        // we did not find a path to the target block
+    std::shared_ptr<const DirFileBlockData> dir_file =
+        try_cast_dir_file(from_block);
+    if (!link && !dir_file) {
+        // This is a terminal block that is not the block that we are looking
+        // for. Therefore, we did not find a path to the target block,
+        // and should just exit.
         return false;
     }
 
-    const std::vector<BlockId>& link_children = link->get_children();
-    for (auto child_id_iter = link_children.cbegin();
-         child_id_iter != link_children.cend(); ++child_id_iter) {
-        const std::shared_ptr<const Block>& child =
-            retrieved_blocks.find(*child_id_iter)->second;
-        // All children should appear in retrieved_blocks
-        assert(child.get() != nullptr);
+    const std::vector<BlockId>& children =
+        link ? link->get_children() : dir_file->get_children();
 
+    for (auto child_id_iter = children.cbegin();
+         child_id_iter != children.cend(); ++child_id_iter) {
+        auto entry = retrieved_blocks.find(*child_id_iter);
+        if (entry == retrieved_blocks.end()) {
+            // Child does not appear in retrieved_blocks; this
+            // means that we did not need to expand this block
+            // to find a path, and that we should therefore not
+            // investigate the path further.
+            continue;
+        }
+        const BlockPtr& child = entry->second;
         if (find_path(retrieved_blocks, child, target_block, block_path)) {
             block_path->push_back(child);
             return true;
@@ -93,13 +102,9 @@ BlockFuse::BlockFuse(std::shared_ptr<BlockManager> block_manager,
 BlockFuse::~BlockFuse() {
 }
 
-BlockPtr BlockFuse::resolve_inode(
-    std::vector<BlockId>* vec,
-    const std::string& rel_file_dir_name) const {
-
+BlockPtr BlockFuse::resolve_inode(const std::string& path) const {
     std::vector<std::shared_ptr<const Block>> blocks;
-    get_path(rel_file_dir_name.c_str(), &blocks);
-
+    get_path(path.c_str(), &blocks);
     if (blocks.empty()) {
         return std::shared_ptr<Block>();
     }
@@ -107,29 +112,15 @@ BlockPtr BlockFuse::resolve_inode(
 }
 
 int BlockFuse::getattr(const char* path, struct stat* stbuf) {
-    std::vector<std::string> parts = FsUtil::separate_path(path);
-    std::vector<BlockId> to_resolve;
-    BlockPtr resolved;
-    std::shared_ptr<const DirFileBlockData> resolved_data;
-
-    for (std::size_t i = 0; i < parts.size(); ++i) {
-        resolved = resolve_inode(&to_resolve, parts[i]);
-
-        if (!resolved) {
-            // No file/dir named by path
-            break;
-        }
-
-        resolved_data =
-            std::static_pointer_cast<const DirFileBlockData>(
-                resolved->get_data());
-        to_resolve = resolved_data->get_children();
-    }
-
+    BlockPtr resolved = resolve_inode(path);
     if (!resolved) {
         // No file/dir named by path
         return 1;
     }
+    std::shared_ptr<const DirFileBlockData> resolved_data =
+        try_cast_dir_file(resolved);
+    // resolve_inode should only return dir file block data.
+    assert(resolved_data);
 
     // File/dir found; populate stbuf with its inode info.
     resolved_data->get_stat().update_stat(
@@ -139,9 +130,98 @@ int BlockFuse::getattr(const char* path, struct stat* stbuf) {
     return 0;
 }
 
+/**
+ * Returns true if {@code path} is a valid path for making a directory
+ * for; false otherwise.
+ */
+bool BlockFuse::mkdir_valid(const char* path,
+    std::vector<BlockPtr>* blocks, std::string* dir_to_make) {
+    std::vector<std::string> parts = FsUtil::separate_path(path);
+    if (parts.size() <= 1) {
+        return false;
+    }
+
+    // Check if the directory already exists
+    struct stat stbuf;
+    if (getattr(path, &stbuf) == 0) {
+        // The directory/file already exists. Do not continue.
+        return false;
+    }
+
+    // Get the parent directory
+    *dir_to_make = parts.back();
+    parts.pop_back();
+
+    get_path(FsUtil::join(parts).c_str(), blocks);
+    if (blocks->empty()) {
+        // No path exists to parent directory
+        return false;
+    }
+
+    // Check that the parent is a directory
+    BlockPtr parent_dir = (*blocks)[blocks->size() - 1];
+    std::shared_ptr<const DirFileBlockData> parent =
+        try_cast_dir_file(parent_dir);
+    if (!parent) {
+        // The parent isn't a directory. Can't call mkdir on a file.
+        return false;
+    }
+    return true;
+}
+
 
 int BlockFuse::mkdir(const char *path, mode_t mode) {
-    throw "Unsupported";
+    std::vector<BlockPtr> blocks;
+    std::string dir_to_make;
+    if (!mkdir_valid(path, &blocks, &dir_to_make)) {
+        return 1;
+    }
+
+    // Replace blocks making up path to parent directory
+    // Note that we have to grow blocks backwards from the created
+    // directory down to the root.
+
+    time_t cur_time = time(NULL);
+    Stat stat(Mode(mode), getuid(), getgid(),
+        // FIXME: Choose a meaningful size
+        1 /* size */,
+        cur_time, cur_time, cur_time);
+
+    std::vector<BlockId> empty;
+    std::shared_ptr<const DirFileBlockData> new_dir_data_block =
+        std::make_shared<const DirFileBlockData> (dir_to_make, stat, empty);
+
+    BlockPtr new_dir_block = block_manager_->create_block(new_dir_data_block);
+
+    // FIXME: For now, just keep adding children to parents. Eventually,
+    // want to enforce branch factor and use links.
+    std::vector<BlockPtr> new_blocks;
+    new_blocks.push_back(new_dir_block);
+
+    for (auto iter = blocks.rbegin(); iter != blocks.rend(); ++iter) {
+        std::shared_ptr<const DirFileBlockData> parent =
+            try_cast_dir_file(*iter);
+        if (!parent) {
+            // FIXME: currently, not enforcing branching limit
+            // and not using any link blocks.
+            throw "FIXME: expecting dir file block";
+        }
+
+        // FIXME: Set access/changed time on parent directory.
+
+        std::vector<BlockId> children = parent->get_children();
+        children.push_back(new_blocks.back()->get_id());
+        std::shared_ptr<const DirFileBlockData> replacement =
+            std::make_shared<const DirFileBlockData>(
+                parent->get_name(),
+                parent->get_stat(),
+                children);
+        new_blocks.push_back(block_manager_->create_block(replacement));
+    }
+
+    // FIXME: Add lock guard to switch out root block
+    root_block_ = new_blocks.back();
+    return 0;
 }
 
 int BlockFuse::rmdir(const char *path) {
@@ -171,6 +251,54 @@ void BlockFuse::get_path(const char* path,
 }
 
 /**
+ * Returns a non-empty pointer if a dir_file block in {@code resp_blocks}
+ * exists with name {@code target_name}. Otherwise, returns an empty
+ * pointer.
+ *
+ * Appends children of link blocks in {@code resp_blocks} to
+ * {@code blocks_to_check} and to {@code retrieved_blocks}.
+ */
+static BlockPtr get_path_part_helper(std::vector<BlockId>* blocks_to_check,
+    std::unordered_map<BlockId, BlockPtr>* retrieved_blocks,
+    const std::vector<BlockPtr>& resp_blocks,
+    const std::string& target_name) {
+
+    for (auto iter = resp_blocks.cbegin(); iter != resp_blocks.cend();
+         ++iter) {
+        // Add this block to all of our retrieved blocks
+        // in case we need it to reconstruct the path to
+        // the target block.
+        // FIXME: it is a little inefficient to do this
+        // here. Really, we only need to track link
+        // blocks and the final block. We could consider
+        // just updating for those two cases instead.
+        (*retrieved_blocks)[(*iter)->get_id()] = *iter;
+
+        std::shared_ptr<const DirFileBlockData> dir_file_data =
+            try_cast_dir_file(*iter);
+        if (dir_file_data) {
+            if (dir_file_data->get_name() == target_name) {
+                // exit loop and now search for path to block
+                return *iter;
+            }
+        }
+        std::shared_ptr<const LinkBlockData> link_data =
+            try_cast_link(*iter);
+        if (link_data) {
+            // We must check all children of a link to see
+            // if they or their children are the target block.
+            const std::vector<BlockId>& children =
+                link_data->get_children();
+            blocks_to_check->insert(blocks_to_check->end(),
+                children.cbegin(),
+                children.cend());
+        }
+    }
+    BlockPtr empty;
+    return empty;
+}
+
+/**
  * Rough algorithm: use the block manager to perform a
  * breadth-first search until we find the target block.
  * Store each block touched in the breadth-first search
@@ -191,9 +319,11 @@ void BlockFuse::get_path_part(
         return;
     }
 
+    assert(try_cast_dir_file(from_block));
     // Those blocks that either could be the target or the ancestor of the
-    // target.
-    std::vector<BlockId> blocks_to_check({ from_block->get_id() });
+    // target (as a link).
+    std::vector<BlockId> blocks_to_check =
+        try_cast_dir_file(from_block)->get_children();
     // All link blocks that we encountered while searching for target.
     std::unordered_map<BlockId, BlockPtr> retrieved_blocks;
     // This gets set when we encounter the target in the loop below.
@@ -204,36 +334,10 @@ void BlockFuse::get_path_part(
         std::shared_ptr<const BlockResponse> response =
             block_manager_->get_blocks(BlockRequest(blocks_to_check));
         blocks_to_check.clear();
-
         const std::vector<BlockPtr>& resp_blocks = response->get_blocks();
 
-        for (auto iter = resp_blocks.cbegin(); iter != resp_blocks.cend();
-             ++iter) {
-            std::shared_ptr<const DirFileBlockData> dir_file_data =
-                try_cast_dir_file(*iter);
-            if (dir_file_data) {
-                if (dir_file_data->get_name() == rel_file_dir_name) {
-                    // exit loop and now search for path to block
-                    target_inode = *iter;
-                    break;
-                }
-            }
-            std::shared_ptr<const LinkBlockData> link_data =
-                try_cast_link(*iter);
-            if (link_data) {
-                // We must check all children of a link to see
-                // if they or their children are the target block.
-                const std::vector<BlockId>& children =
-                    link_data->get_children();
-                blocks_to_check.insert(blocks_to_check.end(),
-                    children.cbegin(),
-                    children.cend());
-                // Add this link block to all of our retrieved blocks
-                // in case we need it to reconstruct the path to
-                // the target block.
-                retrieved_blocks[(*iter)->get_id()] = *iter;
-            }
-        }
+        target_inode = get_path_part_helper(&blocks_to_check,
+            &retrieved_blocks, resp_blocks, rel_file_dir_name);
     }
 
     if (target_inode) {
