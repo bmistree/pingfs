@@ -62,4 +62,20 @@ TEST(BlockFuse, MkdirSucceeds) {
     ASSERT_EQ(block_fuse.getattr("/test", &stbuf), 0);
 }
 
+TEST(BlockFuse, MkdirNestedSucceeds) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+
+    pingfs::BlockFuse block_fuse(block_manager, 55);
+    ASSERT_EQ(block_fuse.mkdir("/a", gen_test_mode().to_mode_t()), 0);
+    struct stat stbuf;
+    ASSERT_EQ(block_fuse.getattr("/a", &stbuf), 0);
+
+    ASSERT_EQ(block_fuse.mkdir("/a/b", gen_test_mode().to_mode_t()), 0);
+    ASSERT_EQ(block_fuse.getattr("/a/b", &stbuf), 0);
+
+    ASSERT_EQ(block_fuse.mkdir("/a/b/c", gen_test_mode().to_mode_t()), 0);
+    ASSERT_EQ(block_fuse.getattr("/a/b/c", &stbuf), 0);
+}
+
 #endif
