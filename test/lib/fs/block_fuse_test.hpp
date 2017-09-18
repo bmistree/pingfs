@@ -62,6 +62,7 @@ TEST(BlockFuse, MkdirSucceeds) {
     ASSERT_EQ(block_fuse.getattr("/test", &stbuf), 0);
 }
 
+
 TEST(BlockFuse, MkdirNestedSucceeds) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
         std::make_shared<pingfs::MemoryBlockManager>();
@@ -76,6 +77,53 @@ TEST(BlockFuse, MkdirNestedSucceeds) {
 
     ASSERT_EQ(block_fuse.mkdir("/a/b/c", gen_test_mode().to_mode_t()), 0);
     ASSERT_EQ(block_fuse.getattr("/a/b/c", &stbuf), 0);
+}
+
+/**
+ * Generates a chain of nested directories; deletes one of those
+ * directories in the chain and checks that all subsequent
+ * directories are also killed.
+ */
+TEST(BlockFuse, MkdirRmDirIncludingChildren) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+
+    pingfs::BlockFuse block_fuse(block_manager, 55);
+    ASSERT_EQ(block_fuse.mkdir("/a", gen_test_mode().to_mode_t()), 0);
+    ASSERT_EQ(block_fuse.mkdir("/a/b", gen_test_mode().to_mode_t()), 0);
+    ASSERT_EQ(block_fuse.mkdir("/a/b/c", gen_test_mode().to_mode_t()), 0);
+    ASSERT_EQ(block_fuse.mkdir("/a/b/c/d", gen_test_mode().to_mode_t()), 0);
+
+    // Actually remove a directory
+    ASSERT_EQ(block_fuse.rmdir("/a/b"), 0);
+
+    // Checks that deletes all child directories
+    struct stat stbuf;
+    ASSERT_EQ(block_fuse.getattr("/a/b/c/d", &stbuf), 1);
+    ASSERT_EQ(block_fuse.getattr("/a/b/c", &stbuf), 1);
+    ASSERT_EQ(block_fuse.getattr("/a/b", &stbuf), 1);
+
+    // Checks that does not delete parent directory
+    ASSERT_EQ(block_fuse.getattr("/a", &stbuf), 0);
+}
+
+TEST(BlockFuse, RmChildDir) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+
+    pingfs::BlockFuse block_fuse(block_manager, 55);
+    ASSERT_EQ(block_fuse.mkdir("/a", gen_test_mode().to_mode_t()), 0);
+    ASSERT_EQ(block_fuse.mkdir("/a/b", gen_test_mode().to_mode_t()), 0);
+
+    // Actually remove a directory
+    ASSERT_EQ(block_fuse.rmdir("/a/b"), 0);
+
+    // Checks that deletes all child directories
+    struct stat stbuf;
+    ASSERT_EQ(block_fuse.getattr("/a/b", &stbuf), 1);
+
+    // Checks that does not delete parent directory
+    ASSERT_EQ(block_fuse.getattr("/a", &stbuf), 0);
 }
 
 #endif

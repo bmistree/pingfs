@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 
@@ -192,37 +193,152 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
         std::make_shared<const DirFileBlockData> (dir_to_make, stat, empty);
 
     BlockPtr new_dir_block = block_manager_->create_block(new_dir_data_block);
-
-    // FIXME: For now, just keep adding children to parents. Eventually,
-    // want to enforce branch factor and use links.
-    std::vector<BlockPtr> new_blocks;
-    new_blocks.push_back(new_dir_block);
-
-    for (auto iter = blocks.rbegin(); iter != blocks.rend(); ++iter) {
-        std::shared_ptr<const DirFileBlockData> parent =
-            try_cast_dir_file(*iter);
-        if (!parent) {
-            // FIXME: currently, not enforcing branching limit
-            // and not using any link blocks.
-            throw "FIXME: expecting dir file block";
-        }
-
-        // FIXME: Set access/changed time on parent directory.
-
-        std::vector<BlockId> children = parent->get_children();
-        children.push_back(new_blocks.back()->get_id());
-        std::shared_ptr<const DirFileBlockData> replacement =
-            std::make_shared<const DirFileBlockData>(*parent, children);
-        new_blocks.push_back(block_manager_->create_block(replacement));
-    }
+    BlockId child_id_to_add = new_dir_block->get_id();
+    BlockPtr last_block_replaced =
+        replace_chain(blocks.rbegin(), blocks.rend(), nullptr,
+            &child_id_to_add);
 
     // FIXME: Add lock guard to switch out root block
-    root_block_ = new_blocks.back();
+    root_block_ = last_block_replaced;
     return 0;
 }
 
+/**
+ * Returns true if {@code block} can be cast to a link block or dir
+ * file block, and false otherwise. If {@code block} can be cast to
+ * a link/dir file block, then populate {@code children} with that
+ * block's children.
+ */
+static bool get_children(BlockPtr block, std::vector<BlockId>* children) {
+    std::shared_ptr<const LinkBlockData> link_data =
+        try_cast_link(block);
+    if (link_data) {
+        *children = link_data->get_children();
+        return true;
+    }
+
+    std::shared_ptr<const DirFileBlockData> dir_file =
+        try_cast_dir_file(block);
+    if (dir_file) {
+        *children = dir_file->get_children();
+        return true;
+    }
+    return false;
+}
+
+
+BlockPtr BlockFuse::replace_chain(
+    std::vector<BlockPtr>::reverse_iterator begin,
+    std::vector<BlockPtr>::reverse_iterator end,
+    BlockId* child_id_to_remove,
+    BlockId* child_id_to_add) {
+    BlockPtr last_replaced_block;
+
+    // child_id_to_remove only indicates the first
+    // id to remove. Use this helper to replace the
+    // pointer if nullptr was passed in.
+    BlockId child_id_to_remove_helper;
+
+    for (auto iter = begin; iter != end; ++iter) {
+        BlockPtr block_to_replace = *iter;
+
+        std::vector<BlockId> block_to_replace_children;
+        get_children(block_to_replace, &block_to_replace_children);
+
+        // child_id_to_remove contains the id of either the last
+        // block that we replaced or of the directory/link
+        // that we're removing. Erase it.
+        if (child_id_to_remove != nullptr) {
+            auto remove_iter = std::find(
+                block_to_replace_children.begin(),
+                block_to_replace_children.end(),
+                *child_id_to_remove);
+            assert(remove_iter != block_to_replace_children.end());
+            block_to_replace_children.erase(remove_iter);
+        } else {
+            child_id_to_remove = &child_id_to_remove_helper;
+        }
+        *child_id_to_remove = block_to_replace->get_id();
+
+        if (last_replaced_block) {
+            // Add the id of the last replaced block
+            block_to_replace_children.push_back(
+                last_replaced_block->get_id());
+        } else if (child_id_to_add) {
+            block_to_replace_children.push_back(*child_id_to_add);
+        }
+
+        // FIXME: Set access/changed time on each directory.
+        last_replaced_block = replace_block_with_diff_children(
+            block_to_replace, block_to_replace_children);
+    }
+    return last_replaced_block;
+}
+
 int BlockFuse::rmdir(const char *path) {
-    throw "Unsupported";
+    std::vector<BlockPtr> blocks;
+    get_path(path, &blocks);
+    if (blocks.empty()) {
+        // Cannot remove directory: directory
+        // does not exist.
+        return 1;
+    }
+
+    if (blocks.size() == 1) {
+        // Cannot delete /
+        return 1;
+    }
+
+    std::size_t last_dir_file_index;
+    bool found_last_dir_file_index = false;
+    for (std::size_t i = blocks.size() - 2; i >= 0; --i) {
+        std::shared_ptr<const LinkBlockData> link_data =
+            try_cast_link(blocks[i]);
+        if (!link_data) {
+            last_dir_file_index = i;
+            found_last_dir_file_index = true;
+            break;
+        }
+    }
+
+    assert(found_last_dir_file_index);
+    BlockId child_id_to_remove = blocks[last_dir_file_index + 1]->get_id();
+
+    // Iterate end to /, replacing children directories on the way.
+    BlockPtr last_replaced_block = replace_chain(
+        // Should correspond to the block in blocks[last_dir_file_index]
+        blocks.rbegin() + (blocks.size() - last_dir_file_index - 1),
+        blocks.rend(), &child_id_to_remove, nullptr);
+
+    // Switch root block with last created block
+    root_block_ = last_replaced_block;
+
+    // Free all blocks no longer in use
+    for (auto iter = blocks.cbegin(); iter != blocks.cend(); ++iter) {
+        block_manager_->free_block((*iter)->get_id());
+    }
+    return 0;
+}
+
+
+BlockPtr BlockFuse::replace_block_with_diff_children(
+    BlockPtr block_to_replace, const std::vector<BlockId>& new_children) {
+
+    std::shared_ptr<const LinkBlockData> link_data =
+        try_cast_link(block_to_replace);
+    if (link_data) {
+        return block_manager_->create_block(
+            std::make_shared<const LinkBlockData>(new_children));
+    }
+
+    std::shared_ptr<const DirFileBlockData> dir_file =
+        try_cast_dir_file(block_to_replace);
+    if (dir_file) {
+        return block_manager_->create_block(
+            std::make_shared<const DirFileBlockData>(*dir_file, new_children));
+    }
+
+    throw "Unexpected block type";
 }
 
 void BlockFuse::get_path(const char* path,
