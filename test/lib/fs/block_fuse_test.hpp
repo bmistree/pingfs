@@ -10,17 +10,21 @@
 
 #include "gtest/gtest.h"
 
+static pingfs::Mode gen_test_mode() {
+    return pingfs::Mode(
+        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
+        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
+        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
+        pingfs::FileType::DIR);
+}
+
 static void verify_mkdir_fails(const std::string& dir_to_make) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
         std::make_shared<pingfs::MemoryBlockManager>();
 
     pingfs::BlockFuse block_fuse(block_manager, 55);
-    pingfs::Mode mode(
-        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
-        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
-        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
-        pingfs::FileType::DIR);
-    ASSERT_NE(block_fuse.mkdir(dir_to_make.c_str(), mode.to_mode_t()), 0);
+    ASSERT_NE(block_fuse.mkdir(dir_to_make.c_str(),
+            gen_test_mode().to_mode_t()), 0);
 }
 
 TEST(BlockFuse, GetAttrRoot) {
@@ -52,12 +56,7 @@ TEST(BlockFuse, MkdirSucceeds) {
         std::make_shared<pingfs::MemoryBlockManager>();
 
     pingfs::BlockFuse block_fuse(block_manager, 55);
-    pingfs::Mode mode(
-        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
-        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
-        pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
-        pingfs::FileType::DIR);
-    ASSERT_EQ(block_fuse.mkdir("/test", mode.to_mode_t()), 0);
+    ASSERT_EQ(block_fuse.mkdir("/test", gen_test_mode().to_mode_t()), 0);
 
     struct stat stbuf;
     ASSERT_EQ(block_fuse.getattr("/test", &stbuf), 0);
