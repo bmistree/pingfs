@@ -212,10 +212,7 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
         std::vector<BlockId> children = parent->get_children();
         children.push_back(new_blocks.back()->get_id());
         std::shared_ptr<const DirFileBlockData> replacement =
-            std::make_shared<const DirFileBlockData>(
-                parent->get_name(),
-                parent->get_stat(),
-                children);
+            std::make_shared<const DirFileBlockData>(*parent, children);
         new_blocks.push_back(block_manager_->create_block(replacement));
     }
 
@@ -329,7 +326,6 @@ void BlockFuse::get_path_part(
     // This gets set when we encounter the target in the loop below.
     // If it is not set, that means we could not find the target block.
     BlockPtr target_inode;
-
     while (!blocks_to_check.empty() && !target_inode) {
         std::shared_ptr<const BlockResponse> response =
             block_manager_->get_blocks(BlockRequest(blocks_to_check));

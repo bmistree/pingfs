@@ -9,6 +9,11 @@ DirFileBlockData::DirFileBlockData(const proto::DirFileProto& proto)
       BlockData::iters_to_vector(proto.children())) {
 }
 
+DirFileBlockData::DirFileBlockData(const DirFileBlockData& other,
+    const std::vector<BlockId>& new_children)
+  : DirFileBlockData(other.name_, other.stat_, new_children) {
+}
+
 DirFileBlockData::DirFileBlockData(
     const std::string& name, const Stat& stat,
     const std::vector<BlockId>& children)

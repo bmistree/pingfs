@@ -17,6 +17,9 @@ namespace pingfs {
 class DirFileBlockData : public BlockData {
  public:
     explicit DirFileBlockData(const proto::DirFileProto& proto);
+    DirFileBlockData(const DirFileBlockData& other,
+        const std::vector<BlockId>& new_children);
+
     DirFileBlockData(const std::string& name,
         const Stat& stat,
         const std::vector<BlockId>& children);
