@@ -133,4 +133,11 @@ TEST(BlockFuse, FailRmRoot) {
     ASSERT_NE(block_fuse.rmdir("/"), 0);
 }
 
+TEST(BlockFuse, FailRmNonExistent) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+    pingfs::BlockFuse block_fuse(block_manager, 55);
+    ASSERT_NE(block_fuse.rmdir("/a/b"), 0);
+}
+
 #endif
