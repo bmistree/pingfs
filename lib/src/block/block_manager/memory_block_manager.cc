@@ -47,4 +47,9 @@ std::shared_ptr<const BlockResponse> MemoryBlockManager::get_blocks(
     return std::make_shared<const BlockResponse>(retrieved_blocks);
 }
 
+std::size_t MemoryBlockManager::num_blocks() {
+    boost::mutex::scoped_lock locker(next_id_mutex_);
+    return map_.size();
+}
+
 }  // namespace pingfs

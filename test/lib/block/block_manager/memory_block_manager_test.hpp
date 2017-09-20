@@ -26,6 +26,34 @@ TEST(MemoryBlockManager, CreateBlock) {
     ASSERT_EQ(*test_data, *block->get_data());
 }
 
+TEST(MemoryBlockManager, NumBlocksEmpty) {
+    pingfs::MemoryBlockManager manager;
+    ASSERT_EQ(manager.num_blocks(), 0u);
+}
+
+TEST(MemoryBlockManager, NumBlocksNonEmpty) {
+    pingfs::MemoryBlockManager manager;
+    std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
+        std::make_shared<const pingfs::FileContentsBlockData>("testing");
+    manager.create_block(test_data);
+    ASSERT_EQ(manager.num_blocks(), 1u);
+    manager.create_block(test_data);
+    ASSERT_EQ(manager.num_blocks(), 2u);
+}
+
+TEST(MemoryBlockManager, NumBlocksAfterDelete) {
+    pingfs::MemoryBlockManager manager;
+    std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
+        std::make_shared<const pingfs::FileContentsBlockData>("testing");
+
+    std::shared_ptr<const pingfs::Block> block =
+        manager.create_block(test_data);
+    ASSERT_EQ(manager.num_blocks(), 1u);
+
+    manager.free_block(block->get_id());
+    ASSERT_EQ(manager.num_blocks(), 0u);
+}
+
 /**
  * Ensures that we can retrieve a block after creating it.
  */
