@@ -56,10 +56,19 @@ TEST(BlockFuse, MkdirSucceeds) {
         std::make_shared<pingfs::MemoryBlockManager>();
 
     pingfs::BlockFuse block_fuse(block_manager, 55);
+
+    ASSERT_EQ(block_manager->num_blocks(),
+        // 1 becuase of root block
+        1u);
+
     ASSERT_EQ(block_fuse.mkdir("/test", gen_test_mode().to_mode_t()), 0);
 
     struct stat stbuf;
     ASSERT_EQ(block_fuse.getattr("/test", &stbuf), 0);
+
+    ASSERT_EQ(block_manager->num_blocks(),
+        // root block + new block
+        2u);
 }
 
 
@@ -72,11 +81,21 @@ TEST(BlockFuse, MkdirNestedSucceeds) {
     struct stat stbuf;
     ASSERT_EQ(block_fuse.getattr("/a", &stbuf), 0);
 
+    ASSERT_EQ(block_manager->num_blocks(),
+        // 2: 1 for root block and 1 for a
+        2u);
+
     ASSERT_EQ(block_fuse.mkdir("/a/b", gen_test_mode().to_mode_t()), 0);
     ASSERT_EQ(block_fuse.getattr("/a/b", &stbuf), 0);
+    ASSERT_EQ(block_manager->num_blocks(),
+        // 3: 1 for root block, 1 for a, and 1 for b.
+        3u);
 
     ASSERT_EQ(block_fuse.mkdir("/a/b/c", gen_test_mode().to_mode_t()), 0);
     ASSERT_EQ(block_fuse.getattr("/a/b/c", &stbuf), 0);
+    ASSERT_EQ(block_manager->num_blocks(),
+        // 4: 1 for root block, 1 for a, 1 for b, and 1 for c
+        4u);
 }
 
 /**

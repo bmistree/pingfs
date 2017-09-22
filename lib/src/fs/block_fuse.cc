@@ -200,6 +200,11 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
 
     // FIXME: Add lock guard to switch out root block
     root_block_ = last_block_replaced;
+
+    // Free all blocks no longer in use
+    for (auto iter = blocks.cbegin(); iter != blocks.cend(); ++iter) {
+        block_manager_->free_block((*iter)->get_id());
+    }
     return 0;
 }
 
@@ -267,7 +272,6 @@ BlockPtr BlockFuse::replace_chain(
         } else if (child_id_to_add) {
             block_to_replace_children.push_back(*child_id_to_add);
         }
-
         // FIXME: Set access/changed time on each directory.
         last_replaced_block = replace_block_with_diff_children(
             block_to_replace, block_to_replace_children);
