@@ -74,6 +74,8 @@ class BlockFuse : public FuseWrapper {
     BlockPtr replace_block_with_diff_children(
         BlockPtr block_to_replace, const std::vector<BlockId>& new_children);
 
+    void recursive_free_children_blocks(BlockPtr block);
+
     /**
      * Walks over a chain of connected blocks starting at {@code begin}
      * and ending at {@code end}, creating a parallel chain of blocks,
@@ -81,7 +83,7 @@ class BlockFuse : public FuseWrapper {
      *
      * @param child_id_to_remove If not null, then remove this id from
      * the children of the begin iterator.
-     * @param child_id_to_add If not null, then add this id to the 
+     * @param child_id_to_add If not null, then add this id to the
      * children of the begin iterator.
      */
     BlockPtr replace_chain(

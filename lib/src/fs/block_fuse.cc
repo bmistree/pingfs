@@ -321,9 +321,35 @@ int BlockFuse::rmdir(const char *path) {
     for (auto iter = blocks.cbegin(); iter != blocks.cend(); ++iter) {
         block_manager_->free_block((*iter)->get_id());
     }
+
+    recursive_free_children_blocks(blocks.back());
     return 0;
 }
 
+void BlockFuse::recursive_free_children_blocks(BlockPtr block) {
+    std::vector<BlockId> children;
+    if (!get_children(block, &children)) {
+        // This block cannot have children. Skip it.
+        return;
+    }
+
+    // Fetch children blocks so that we can delete their children
+    std::shared_ptr<const BlockResponse> response =
+        block_manager_->get_blocks(BlockRequest(children));
+
+    // Free children blocks
+    for (auto iter = children.cbegin(); iter != children.cend();
+         ++iter) {
+        block_manager_->free_block(*iter);
+    }
+
+    // Try deleting children of children
+    const std::vector<BlockPtr>& child_blocks = response->get_blocks();
+    for (auto iter = child_blocks.cbegin();
+         iter != child_blocks.cend(); ++iter) {
+        recursive_free_children_blocks(*iter);
+    }
+}
 
 BlockPtr BlockFuse::replace_block_with_diff_children(
     BlockPtr block_to_replace, const std::vector<BlockId>& new_children) {

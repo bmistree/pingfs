@@ -113,8 +113,12 @@ TEST(BlockFuse, MkdirRmDirIncludingChildren) {
     ASSERT_EQ(block_fuse.mkdir("/a/b/c", gen_test_mode().to_mode_t()), 0);
     ASSERT_EQ(block_fuse.mkdir("/a/b/c/d", gen_test_mode().to_mode_t()), 0);
 
+    ASSERT_EQ(block_manager->num_blocks(), 5u);
+
     // Actually remove a directory
     ASSERT_EQ(block_fuse.rmdir("/a/b"), 0);
+
+    ASSERT_EQ(block_manager->num_blocks(), 2u);
 
     // Checks that deletes all child directories
     struct stat stbuf;
@@ -134,15 +138,21 @@ TEST(BlockFuse, RmChildDir) {
     ASSERT_EQ(block_fuse.mkdir("/a", gen_test_mode().to_mode_t()), 0);
     ASSERT_EQ(block_fuse.mkdir("/a/b", gen_test_mode().to_mode_t()), 0);
 
+    ASSERT_EQ(block_manager->num_blocks(), 3u);
+
     // Actually remove a directory
     ASSERT_EQ(block_fuse.rmdir("/a/b"), 0);
 
-    // Checks that deletes all child directories
+    // Checks that deletes target directories
     struct stat stbuf;
     ASSERT_EQ(block_fuse.getattr("/a/b", &stbuf), 1);
 
     // Checks that does not delete parent directory
     ASSERT_EQ(block_fuse.getattr("/a", &stbuf), 0);
+
+    // Ensures that we are not leaking blocks and that the
+    // right number of blocks are left
+    ASSERT_EQ(block_manager->num_blocks(), 2u);
 }
 
 TEST(BlockFuse, FailRmRoot) {
