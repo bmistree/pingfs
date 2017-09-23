@@ -489,4 +489,10 @@ void BlockFuse::get_path_part(
     }
 }
 
+int BlockFuse::readdir(const char *path, void *buf,
+    fuse_fill_dir_t filler, off_t offset,
+    struct fuse_file_info *fi) {
+    throw "Unsupported";
+}
+
 }  // namespace pingfs

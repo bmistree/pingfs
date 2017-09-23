@@ -17,6 +17,9 @@ class FuseWrapper : public FuseFactory {
     virtual int getattr(const char *path, struct stat *stbuf) = 0;
     virtual int mkdir(const char *path, mode_t mode) = 0;
     virtual int rmdir(const char *path) = 0;
+    virtual int readdir(const char *path, void *buf,
+        fuse_fill_dir_t filler, off_t offset,
+        struct fuse_file_info *fi) = 0;
 };
 
 namespace fuse_wrapper {
