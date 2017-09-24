@@ -95,4 +95,8 @@ time_t Stat::get_status_change_time() const {
     return status_change_time_;
 }
 
+bool Stat::is_dir() const {
+    return mode_.get_file_type() == FileType::DIR;
+}
+
 }  // namespace pingfs

@@ -62,4 +62,8 @@ const Stat& DirFileBlockData::get_stat() const {
     return stat_;
 }
 
+bool DirFileBlockData::is_dir() const {
+    return stat_.is_dir();
+}
+
 }  // namespace pingfs

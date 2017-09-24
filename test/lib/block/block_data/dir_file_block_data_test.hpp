@@ -55,4 +55,32 @@ TEST(DirFileBlockData, SwapChildren) {
     ASSERT_EQ(diff.get_children(), diff_children);
 }
 
+TEST(DirFileBlockData, IsDir) {
+    std::vector<pingfs::BlockId> original_children({ 55u });
+    pingfs::DirFileBlockData data(
+        "name", get_test_stat(), original_children);
+    ASSERT_EQ(data.is_dir(), true);
+}
+
+TEST(DirFileBlockData, IsNotDir) {
+    std::vector<pingfs::BlockId> original_children({ 55u });
+
+    pingfs::Stat stat(
+        pingfs::Mode(pingfs::ReadWriteExecute::READ,
+            pingfs::ReadWriteExecute::NONE,
+            pingfs::ReadWriteExecute::EXECUTE,
+            pingfs::FileType::REGULAR),
+        0 /* uid */,
+        0 /* gid */,
+        100 /* size */,
+        52 /* access_time */,
+        55 /* mod_time */,
+        56 /* status_change_time */);
+
+    pingfs::DirFileBlockData data(
+        "name", stat, original_children);
+    ASSERT_EQ(data.is_dir(), false);
+}
+
+
 #endif

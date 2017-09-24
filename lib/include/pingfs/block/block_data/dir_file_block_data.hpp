@@ -34,6 +34,8 @@ class DirFileBlockData : public BlockData {
 
     void gen_proto(proto::DirFileProto* proto) const;
 
+    bool is_dir() const;
+
  private:
     /**
      * The name of the directory or file that this corresponds to.

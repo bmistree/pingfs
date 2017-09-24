@@ -32,6 +32,7 @@ class Stat {
     time_t get_status_change_time() const;
     mode_t get_mode_t() const;
     void update_stat(dev_t dev, ino_t ino, struct stat* stbuf) const;
+    bool is_dir() const;
 
  private:
     const Mode mode_;
