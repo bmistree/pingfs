@@ -123,7 +123,8 @@ int BlockFuse::getattr(const char* path, struct stat* stbuf) {
     BlockPtr resolved = resolve_inode(path);
     if (!resolved) {
         // No file/dir named by path
-        return 1;
+        errno = ENOENT;
+        return -1;
     }
     std::shared_ptr<const DirFileBlockData> resolved_data =
         try_cast_dir_file(resolved);

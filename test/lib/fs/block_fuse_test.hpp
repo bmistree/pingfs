@@ -1,6 +1,7 @@
 #ifndef _BLOCK_FUSE_TEST_
 #define _BLOCK_FUSE_TEST_
 
+#include <errno.h>
 #include <unistd.h>
 
 #include <pingfs/fs/block_fuse.hpp>
@@ -16,6 +17,11 @@ static pingfs::Mode gen_test_mode() {
         pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
         pingfs::ReadWriteExecute::READ_WRITE_EXECUTE,
         pingfs::FileType::DIR);
+}
+
+static void verify_path_dne(int return_code) {
+    ASSERT_EQ(return_code, -1);
+    ASSERT_EQ(errno, ENOENT);
 }
 
 static void verify_mkdir_fails(const std::string& dir_to_make) {
@@ -42,6 +48,16 @@ TEST(BlockFuse, GetAttrRoot) {
         static_cast<mode_t>(S_IFDIR | S_IRWXU | S_IRGRP |
             S_IXGRP | S_IXOTH));
 }
+
+TEST(BlockFuse, GetAttrDne) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+
+    pingfs::BlockFuse bf(block_manager, 55);
+    struct stat stat;
+    verify_path_dne(bf.getattr("/a", &stat));
+}
+
 
 TEST(BlockFuse, MkdirFailsPathDoesNotExist) {
     verify_mkdir_fails("/test/dne");
@@ -122,9 +138,9 @@ TEST(BlockFuse, MkdirRmDirIncludingChildren) {
 
     // Checks that deletes all child directories
     struct stat stbuf;
-    ASSERT_EQ(block_fuse.getattr("/a/b/c/d", &stbuf), 1);
-    ASSERT_EQ(block_fuse.getattr("/a/b/c", &stbuf), 1);
-    ASSERT_EQ(block_fuse.getattr("/a/b", &stbuf), 1);
+    verify_path_dne(block_fuse.getattr("/a/b/c/d", &stbuf));
+    verify_path_dne(block_fuse.getattr("/a/b/c", &stbuf));
+    verify_path_dne(block_fuse.getattr("/a/b", &stbuf));
 
     // Checks that does not delete parent directory
     ASSERT_EQ(block_fuse.getattr("/a", &stbuf), 0);
@@ -145,7 +161,7 @@ TEST(BlockFuse, RmChildDir) {
 
     // Checks that deletes target directories
     struct stat stbuf;
-    ASSERT_EQ(block_fuse.getattr("/a/b", &stbuf), 1);
+    verify_path_dne(block_fuse.getattr("/a/b", &stbuf));
 
     // Checks that does not delete parent directory
     ASSERT_EQ(block_fuse.getattr("/a", &stbuf), 0);
