@@ -2,6 +2,8 @@
 #define _BLOCK_FUSE_
 
 #include <pingfs/block/block.hpp>
+#include <pingfs/block/block_data/file_contents_block_data.hpp>
+#include <pingfs/block/block_data/link_block_data.hpp>
 #include <pingfs/block/block_manager/block_manager.hpp>
 
 #include <unistd.h>
@@ -33,9 +35,7 @@ class BlockFuse : public FuseWrapper {
         fuse_fill_dir_t filler, off_t offset,
         struct fuse_file_info *fi) override;
     int read(const char *path, char *buffer, size_t size,
-        off_t offset, struct fuse_file_info *fi) override {
-        throw "Unsupported";
-    }
+        off_t offset, struct fuse_file_info *fi) override;
 
  private:
     /**
@@ -106,6 +106,15 @@ class BlockFuse : public FuseWrapper {
     void get_dir_files_from_dir(
         std::shared_ptr<const DirFileBlockData> dir_file,
         std::vector<std::shared_ptr<const DirFileBlockData>>* children);
+
+    /**
+     * Return all FileContentsBlockData blocks for the file associated with
+     * {@code file_data}. Note that {@code file_data} must be associated with
+     * a file and not a directory. Also note that {@code file_blocks} will be
+     * in the order that the block appears in the file.
+     */
+    void get_file_contents(std::shared_ptr<const DirFileBlockData> file_data,
+        std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks);
 
  private:
     std::shared_ptr<BlockManager> block_manager_;

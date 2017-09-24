@@ -169,4 +169,30 @@ TEST(BlockFuse, FailRmNonExistent) {
     ASSERT_NE(block_fuse.rmdir("/a/b"), 0);
 }
 
+TEST(BlockFuse, ReadPathDoesNotExist) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+    pingfs::BlockFuse block_fuse(block_manager, 55);
+    char buffer;
+    struct fuse_file_info info;
+    ASSERT_LT(
+        block_fuse.read(
+            "/a", &buffer, 0 /* size */, 0 /* offset */,
+            &info),
+        0);
+}
+
+TEST(BlockFuse, ReadDirFails) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+    pingfs::BlockFuse block_fuse(block_manager, 55);
+    char buffer;
+    struct fuse_file_info info;
+    ASSERT_LT(
+        block_fuse.read(
+            "/", &buffer, 0 /* size */, 0 /* offset */,
+            &info),
+        0);
+}
+
 #endif

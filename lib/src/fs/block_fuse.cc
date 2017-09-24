@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <iostream>
 
 namespace pingfs {
@@ -24,6 +25,12 @@ static std::shared_ptr<const DirFileBlockData> try_cast_dir_file(
 static std::shared_ptr<const LinkBlockData> try_cast_link(
     BlockPtr block_ptr) {
     return std::dynamic_pointer_cast<const LinkBlockData>(
+        block_ptr->get_data());
+}
+
+static std::shared_ptr<const FileContentsBlockData> try_cast_contents(
+    BlockPtr block_ptr) {
+    return std::dynamic_pointer_cast<const FileContentsBlockData>(
         block_ptr->get_data());
 }
 
@@ -569,6 +576,100 @@ int BlockFuse::readdir(const char *path, void *buf,
         filler(buf, (*iter)->get_name().c_str(), &stbuf, 0);
     }
     return 0;
+}
+
+static void file_blocks_to_contents(
+    const std::vector<
+      std::shared_ptr<const FileContentsBlockData>>& file_blocks,
+    std::string* contents) {
+
+    for (auto iter = file_blocks.cbegin(); iter != file_blocks.cend();
+         ++iter) {
+        const std::string& data = *((*iter)->get_data());
+        contents->insert(contents->end(), data.cbegin(), data.cend());
+    }
+}
+
+
+int BlockFuse::read(const char *path, char *buffer, size_t size,
+    off_t offset, struct fuse_file_info *fi)  {
+
+    std::vector<BlockPtr> blocks;
+    get_path(path, &blocks);
+    if (blocks.empty()) {
+        return -1;
+    }
+
+    std::shared_ptr<const DirFileBlockData> dir_file =
+        try_cast_dir_file(blocks.back());
+
+    if (!dir_file) {
+        // Wrong type of block data
+        return -1;
+    }
+
+    if (dir_file->is_dir()) {
+        // Trying to read a directory instead of a file
+        return -1;
+    }
+
+    // FIXME: For now, constructing entire file in memory and then just
+    // returning the relevant portion. Would be much more efficient to just find
+    // the targeted portion of the file.
+    std::vector<std::shared_ptr<const FileContentsBlockData>> file_blocks;
+    get_file_contents(dir_file, &file_blocks);
+    std::string contents;
+    file_blocks_to_contents(file_blocks, &contents);
+
+    // FIXME: skipping populating fuse_file_info struct
+
+    if (offset > contents.size()) {
+        return 0;
+    }
+
+    // FIXME: should I be using int64_t here?
+    int64_t actual_size =
+        ((offset + size) <= contents.size()) ? size
+                                             : (contents.size() - offset);
+    std::memcpy(buffer, contents.c_str() + offset, actual_size);
+    return actual_size;
+}
+
+/**
+ * Performs a depth-first left-to-right search to populate
+ * file_blocks from block tree.
+ */
+static void get_contents_helper(
+    const std::vector<BlockId>& blocks_to_check,
+    std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks,
+    std::shared_ptr<BlockManager> block_manager) {
+
+    std::shared_ptr<const BlockResponse> response =
+        block_manager->get_blocks(BlockRequest(blocks_to_check));
+    for (auto iter = response->get_blocks().cbegin();
+         iter != response->get_blocks().cend(); ++iter) {
+        std::shared_ptr<const FileContentsBlockData> contents =
+            try_cast_contents(*iter);
+        if (contents) {
+            file_blocks->push_back(contents);
+            continue;
+        }
+
+        std::shared_ptr<const LinkBlockData> link_data =
+            try_cast_link(*iter);
+        if (link_data) {
+            get_contents_helper(
+                link_data->get_children(), file_blocks, block_manager);
+        }
+    }
+}
+
+void BlockFuse::get_file_contents(
+    std::shared_ptr<const DirFileBlockData> file_data,
+    std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks) {
+    assert(!file_data->is_dir());
+    get_contents_helper(
+        file_data->get_children(), file_blocks, block_manager_);
 }
 
 }  // namespace pingfs
