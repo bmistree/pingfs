@@ -191,11 +191,10 @@ TEST(BlockFuse, ReadPathDoesNotExist) {
     pingfs::BlockFuse block_fuse(block_manager, 55);
     char buffer;
     struct fuse_file_info info;
-    ASSERT_LT(
+    verify_path_dne(
         block_fuse.read(
             "/a", &buffer, 0 /* size */, 0 /* offset */,
-            &info),
-        0);
+            &info));
 }
 
 TEST(BlockFuse, ReadDirFails) {
