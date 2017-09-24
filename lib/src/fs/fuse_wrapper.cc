@@ -34,6 +34,17 @@ int rmdir(const char *path) {
     return global_wrapper->rmdir(path);
 }
 
+int readdir(const char *path, void *buf,
+    fuse_fill_dir_t filler, off_t offset,
+    struct fuse_file_info *fi) {
+    return global_wrapper->readdir(path, buf, filler, offset, fi);
+}
+
+int read(const char *path, char *buffer, size_t size,
+    off_t offset, struct fuse_file_info *fi) {
+    return global_wrapper->read(path, buffer, size, offset, fi);
+}
+
 }  // namespace fuse_wrapper
 
 

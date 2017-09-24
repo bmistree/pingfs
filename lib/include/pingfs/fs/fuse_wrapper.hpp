@@ -20,6 +20,8 @@ class FuseWrapper : public FuseFactory {
     virtual int readdir(const char *path, void *buf,
         fuse_fill_dir_t filler, off_t offset,
         struct fuse_file_info *fi) = 0;
+    virtual int read(const char *path, char *buffer, size_t size,
+        off_t offset, struct fuse_file_info *fi) = 0;
 };
 
 namespace fuse_wrapper {
@@ -29,6 +31,11 @@ static FuseWrapper* global_wrapper = nullptr;
 int getattr(const char *path, struct stat *stbuf);
 int mkdir(const char *path, mode_t mode);
 int rmdir(const char *path);
+int readdir(const char *path, void *buf,
+    fuse_fill_dir_t filler, off_t offset,
+    struct fuse_file_info *fi);
+int read(const char *path, char *buffer, size_t size,
+    off_t offset, struct fuse_file_info *fi);
 
 }  // namespace fuse_wrapper
 
