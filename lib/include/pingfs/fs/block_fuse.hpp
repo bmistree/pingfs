@@ -95,6 +95,14 @@ class BlockFuse : public FuseWrapper {
         BlockId* child_id_to_remove,
         BlockId* child_id_to_add);
 
+    /**
+     * Populates {@code children} with the immediate files and dirs of {@code
+     * dir_file}.
+     */
+    void get_dir_files_from_dir(
+        std::shared_ptr<const DirFileBlockData> dir_file,
+        std::vector<std::shared_ptr<const DirFileBlockData>>* children);
+
  private:
     std::shared_ptr<BlockManager> block_manager_;
     BlockPtr root_block_;

@@ -489,10 +489,86 @@ void BlockFuse::get_path_part(
     }
 }
 
+void BlockFuse::get_dir_files_from_dir(
+    std::shared_ptr<const DirFileBlockData> dir_file,
+    std::vector<std::shared_ptr<const DirFileBlockData>>* children) {
+
+    std::vector<BlockId> blocks_to_trace = dir_file->get_children();
+
+    while (!blocks_to_trace.empty()) {
+        std::shared_ptr<const BlockResponse> resp =
+            block_manager_->get_blocks(BlockRequest(blocks_to_trace));
+        blocks_to_trace.clear();
+
+        for (auto iter = resp->get_blocks().cbegin();
+             iter !=resp->get_blocks().cend(); ++iter) {
+            std::shared_ptr<const DirFileBlockData> child =
+                try_cast_dir_file(*iter);
+            if (child) {
+                // If it's a dir file block, do not trace any further.
+                children->push_back(child);
+                continue;
+            }
+
+            std::shared_ptr<const LinkBlockData> link_data =
+                try_cast_link(*iter);
+            if (link_data) {
+                // Keep tracing through links.
+                blocks_to_trace.insert(blocks_to_trace.end(),
+                    link_data->get_children().cbegin(),
+                    link_data->get_children().cend());
+            }
+        }
+    }
+}
+
 int BlockFuse::readdir(const char *path, void *buf,
     fuse_fill_dir_t filler, off_t offset,
     struct fuse_file_info *fi) {
-    throw "Unsupported";
+
+    std::vector<BlockPtr> blocks;
+    get_path(path, &blocks);
+    if (blocks.empty()) {
+        // path doesn't exist
+        return 1;
+    }
+
+    std::shared_ptr<const DirFileBlockData> dir_file =
+        try_cast_dir_file(blocks.back());
+    if (!dir_file) {
+        // Searched for path is not a directory.
+        return 1;
+    }
+
+    struct stat stbuf;
+    dir_file->get_stat().update_stat(
+        dev_,
+        1 /* ino; FIXME don't hard code */,
+        &stbuf);
+    int filler_result = filler(buf, ".", &stbuf, 0);
+    if (filler_result != 0) {
+        return filler_result;
+    }
+
+    // FIXME: Currently using NULL instead of stat struct for
+    // parent.
+    filler_result = filler(buf, "..", NULL, 0);
+    if (filler_result != 0) {
+        return filler_result;
+    }
+
+    std::vector<std::shared_ptr<const DirFileBlockData>> children;
+    get_dir_files_from_dir(dir_file, &children);
+
+    for (auto iter = children.cbegin(); iter != children.cend();
+         ++iter) {
+        (*iter)->get_stat().update_stat(
+            dev_,
+            1 /* ino; FIXME don't hard code */,
+            &stbuf);
+        filler(buf, (*iter)->get_name().c_str(), &stbuf, 0);
+    }
+    return 0;
 }
 
 }  // namespace pingfs
