@@ -2,12 +2,14 @@
 #define _BLOCK_FUSE_
 
 #include <pingfs/block/block.hpp>
+#include <pingfs/block/block_data/dir_file_block_data.hpp>
 #include <pingfs/block/block_data/file_contents_block_data.hpp>
 #include <pingfs/block/block_data/link_block_data.hpp>
 #include <pingfs/block/block_manager/block_manager.hpp>
 
 #include <unistd.h>
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
