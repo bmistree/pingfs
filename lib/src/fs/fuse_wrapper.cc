@@ -16,6 +16,10 @@ std::shared_ptr<struct fuse_operations> FuseWrapper::generate() {
     std::shared_ptr<struct fuse_operations> ops =
         std::make_shared<struct fuse_operations>();
     ops->getattr = fuse_wrapper::getattr;
+    ops->mkdir = fuse_wrapper::mkdir;
+    ops->rmdir = fuse_wrapper::rmdir;
+    ops->readdir = fuse_wrapper::readdir;
+    ops->read = fuse_wrapper::read;
     return ops;
 }
 
