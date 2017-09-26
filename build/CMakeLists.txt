@@ -11,6 +11,8 @@ string(STRIP "${FUSE_FLAGS}" FUSE_FLAGS)
 # FIXME: I should not have hard coded this
 set(FUSE_LIBRARY "/usr/lib/x86_64-linux-gnu/libfuse.so")
 
+add_definitions(-DFUSE_USE_VERSION=25)
+
 # Set compile parameters
 list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -Wall -pthread ${FUSE_FLAGS}")
 
