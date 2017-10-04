@@ -195,7 +195,14 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
     // directory down to the root.
 
     time_t cur_time = time(NULL);
-    Stat stat(Mode(mode), getuid(), getgid(),
+
+    Stat stat(
+        // mode contains just the permission bits; additional
+        // bits are implementation-dependent according to
+        // mkdir documentation. therefore, we or with
+        // S_IFDIR.
+        Mode(mode | S_IFDIR),
+        getuid(), getgid(),
         // FIXME: Choose a meaningful size
         1 /* size */,
         cur_time, cur_time, cur_time);
