@@ -16,8 +16,9 @@ namespace pingfs {
 
 using BlockPtr = std::shared_ptr<const Block>;
 
-static void set_no_such_file_or_dir() {
+static int set_no_such_file_or_dir() {
     errno = ENOENT;
+    return -ENOENT;
 }
 
 static std::shared_ptr<const DirFileBlockData> try_cast_dir_file(
@@ -127,8 +128,7 @@ int BlockFuse::getattr(const char* path, struct stat* stbuf) {
     BlockPtr resolved = resolve_inode(path);
     if (!resolved) {
         // No file/dir named by path
-        set_no_such_file_or_dir();
-        return -1;
+        return set_no_such_file_or_dir();
     }
     std::shared_ptr<const DirFileBlockData> resolved_data =
         try_cast_dir_file(resolved);
@@ -542,8 +542,7 @@ int BlockFuse::readdir(const char *path, void *buf,
     get_path(path, &blocks);
     if (blocks.empty()) {
         // path doesn't exist
-        set_no_such_file_or_dir();
-        return -1;
+        return set_no_such_file_or_dir();
     }
 
     std::shared_ptr<const DirFileBlockData> dir_file =
@@ -603,7 +602,8 @@ int BlockFuse::read(const char *path, char *buffer, size_t size,
     std::vector<BlockPtr> blocks;
     get_path(path, &blocks);
     if (blocks.empty()) {
-        return -1;
+        // Path does not exist
+        return set_no_such_file_or_dir();
     }
 
     std::shared_ptr<const DirFileBlockData> dir_file =

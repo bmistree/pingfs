@@ -20,7 +20,7 @@ static pingfs::Mode gen_test_mode() {
 }
 
 static void verify_path_dne(int return_code) {
-    ASSERT_EQ(return_code, -1);
+    ASSERT_EQ(return_code, -ENOENT);
     ASSERT_EQ(errno, ENOENT);
 }
 
