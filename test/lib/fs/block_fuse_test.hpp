@@ -210,4 +210,53 @@ TEST(BlockFuse, ReadDirFails) {
         0);
 }
 
+TEST(BlockFuse, WriteFailsDne) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+    pingfs::BlockFuse block_fuse(block_manager, 55);
+    const char* test_buffer = "nothing";
+    struct fuse_file_info info;
+    verify_path_dne(
+        block_fuse.write(
+            "/a/b/c/d.txt", test_buffer, 0 /* size */, 0 /* offset */,
+            &info));
+}
+
+TEST(BlockFuse, WriteReadSucceeds) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>();
+    pingfs::BlockFuse block_fuse(block_manager, 55);
+    std::string filename = "/a.txt";
+    std::string test_data = "test";
+    struct fuse_file_info info;
+    // Testing that initial write works
+    ASSERT_EQ(
+        block_fuse.write(
+            filename.c_str(), test_data.c_str(),
+            test_data.size(), 0 /* offset */,
+            &info),
+        static_cast<int>(test_data.size()));
+
+    // Ensure that getattr shows that the file exists
+    struct stat stbuf;
+    ASSERT_EQ(block_fuse.getattr(filename.c_str(), &stbuf), 0);
+
+    // Ensure that read same data out
+    char buffer[128];
+    block_fuse.read(filename.c_str(), buffer, test_data.size(),
+        0 /* offset */, &info);
+
+    // Compare to ensure that the read string was the same
+    // as what was written.
+    for (std::size_t i = 0; i < test_data.size(); ++i) {
+        ASSERT_EQ(test_data[i], buffer[i]);
+    }
+}
+
+// FIXME: Still must test reads and writes with offsets
+
+// FIXME: Still must test that handle large files (want to
+// test that we handle tree branches correctly).
+
+
 #endif

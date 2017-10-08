@@ -38,8 +38,13 @@ class BlockFuse : public FuseWrapper {
         struct fuse_file_info *fi) override;
     int read(const char *path, char *buffer, size_t size,
         off_t offset, struct fuse_file_info *fi) override;
+    int write(const char *path, const char *buffer,
+        size_t size, off_t offset, struct fuse_file_info *fi) override;
 
  private:
+    static const std::size_t BYTES_PER_BLOCK = 1000;
+    static const  std::size_t BRANCHING_FACTOR = 4;
+
     /**
      * Returns the Block corresponding to the inode for
      * {@code path}, or a wrapped nullptr, if none exists.
@@ -117,6 +122,47 @@ class BlockFuse : public FuseWrapper {
      */
     void get_file_contents(std::shared_ptr<const DirFileBlockData> file_data,
         std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks);
+
+    /**
+     * Write the entire string in {@code file_contents} to the file
+     * system starting at the inode in the final position in {@code blockes}.
+     *
+     * @param blocks The path leading up to the file to replace. The final
+     * value should be an inode for the target file.
+     * @param file_contents The string to write for the file.
+     */
+    void write_file_starting_at_node(
+        const std::vector<BlockPtr>* blocks,
+        const std::string& file_contents);
+
+    /**
+     * Read the contents of a file referenced by {@code file_inode}
+     * into {@code result}.
+     */
+    void read_file_contents(std::string* result,
+        std::shared_ptr<const DirFileBlockData> file_inode);
+
+    void write_file_starting_at_node(
+        std::vector<BlockPtr>* blocks,
+        const std::string& file_contents);
+
+    /**
+     * Either get the blocks leading up to the inode
+     * for a given path, or creates a file for the given path.
+     */
+    void get_write_blocks(const char* path,
+        std::vector<BlockPtr>* blocks);
+
+    /**
+     * Create a file block associated with path. Returns true
+     * and the path to the new file in {@code blocks}, if it
+     * can create the file. If it cannot (e.g., if the file
+     * already exists or the directory doesn't exist), then
+     * return false and do not change {@code blocks}.
+     */
+    bool create_file_block(const char* path,
+        std::vector<BlockPtr>* blocks);
+
 
  private:
     std::shared_ptr<BlockManager> block_manager_;

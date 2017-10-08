@@ -20,6 +20,7 @@ std::shared_ptr<struct fuse_operations> FuseWrapper::generate() {
     ops->rmdir = fuse_wrapper::rmdir;
     ops->readdir = fuse_wrapper::readdir;
     ops->read = fuse_wrapper::read;
+    ops->write = fuse_wrapper::write;
     return ops;
 }
 
@@ -47,6 +48,11 @@ int readdir(const char *path, void *buf,
 int read(const char *path, char *buffer, size_t size,
     off_t offset, struct fuse_file_info *fi) {
     return global_wrapper->read(path, buffer, size, offset, fi);
+}
+
+int write(const char *path, const char *buffer,
+    size_t size, off_t offset, struct fuse_file_info *fi) {
+    return global_wrapper->write(path, buffer, size, offset, fi);
 }
 
 }  // namespace fuse_wrapper

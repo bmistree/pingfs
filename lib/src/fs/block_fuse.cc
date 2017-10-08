@@ -4,6 +4,7 @@
 #include <pingfs/fs/fs_util.hpp>
 #include <pingfs/fs/fuse_wrapper.hpp>
 
+#include <math.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -19,6 +20,11 @@ using BlockPtr = std::shared_ptr<const Block>;
 static int set_no_such_file_or_dir() {
     errno = ENOENT;
     return -ENOENT;
+}
+
+static int set_error_because_dir() {
+    errno = EISDIR;
+    return -EISDIR;
 }
 
 static std::shared_ptr<const DirFileBlockData> try_cast_dir_file(
@@ -282,11 +288,10 @@ BlockPtr BlockFuse::replace_chain(
 
     for (auto iter = begin; iter != end; ++iter) {
         BlockPtr block_to_replace = *iter;
-
         std::vector<BlockId> block_to_replace_children;
         get_children(block_to_replace, &block_to_replace_children);
 
-        // children_to_remove_hlper contains the id of either the last
+        // children_to_remove_helper contains the id of either the last
         // block that we replaced or of the directory/link
         // that we're removing. Erase it.
         remove_ids(&block_to_replace_children, children_to_remove_helper);
@@ -649,8 +654,7 @@ int BlockFuse::read(const char *path, char *buffer, size_t size,
     file_blocks_to_contents(file_blocks, &contents);
 
     // FIXME: skipping populating fuse_file_info struct
-
-    if (offset > contents.size()) {
+    if (static_cast<std::size_t>(offset) > contents.size()) {
         return 0;
     }
 
@@ -689,6 +693,226 @@ static void get_contents_helper(
                 link_data->get_children(), file_blocks, block_manager);
         }
     }
+}
+
+void BlockFuse::read_file_contents(std::string* result,
+    std::shared_ptr<const DirFileBlockData> file_inode) {
+    assert(!file_inode->is_dir());
+    std::vector<std::shared_ptr<const FileContentsBlockData>> file_blocks;
+    get_contents_helper(
+        file_inode->get_children(), &file_blocks, block_manager_);
+
+    for (auto iter = file_blocks.cbegin(); iter != file_blocks.cend();
+         ++iter) {
+        *result += *((*iter)->get_data());
+    }
+}
+
+
+void BlockFuse::get_write_blocks(const char* path,
+    std::vector<BlockPtr>* blocks) {
+
+    get_path(path, blocks);
+    // The file existed
+    if (!blocks->empty()) {
+        return;
+    }
+
+    // The file did not exist; check if the directory up to it did.
+    // If the directory does exist, then create the file itself.
+    create_file_block(path, blocks);
+}
+
+static Stat gen_file_stat() {
+    time_t cur_time = time(NULL);
+    return Stat(Mode(ReadWriteExecute::READ_WRITE_EXECUTE,
+            ReadWriteExecute::READ_EXECUTE,
+            ReadWriteExecute::EXECUTE,
+            FileType::REGULAR),
+        getuid(),
+        getgid(),
+        0 /* size */,
+        cur_time /* access_time */,
+        cur_time /* mod_time */,
+        cur_time /* status_change_time */);
+}
+
+bool BlockFuse::create_file_block(const char* path,
+    std::vector<BlockPtr>* blocks) {
+
+    get_path(path, blocks);
+    // The file existed; do not try to create the file
+    if (!blocks->empty()) {
+        return false;
+    }
+
+    std::vector<std::string> separated_path = FsUtil::separate_path(path);
+    std::vector<std::string> penultimate(
+        separated_path.begin(), separated_path.end() - 1);
+
+    get_path(FsUtil::join(penultimate).c_str(), blocks);
+    if (blocks->empty()) {
+        // The path up to the file did not exist; cannot
+        // create the file itself.
+        return false;
+    }
+
+    // The file did not exist, but the path to it did: create the
+    // file.
+    std::vector<BlockId> empty;
+    std::shared_ptr<const DirFileBlockData> new_file_data =
+        std::make_shared<const DirFileBlockData>(
+            separated_path.back(),
+            gen_file_stat(),
+            empty);
+
+    // Create a block associated with this file and add it to
+    // this directory.
+    BlockPtr new_block = block_manager_->create_block(new_file_data);
+    // FIXME: add some concurrency checks here.
+    root_block_ =
+        replace_chain(blocks->rbegin(), blocks->rend(),
+            {}, {new_block->get_id()});
+    blocks->clear();
+
+    // Get the updated path
+    get_path(path, blocks);
+    // This should exist: we just added it.
+    assert(!blocks->empty());
+    return true;
+}
+
+
+int BlockFuse::write(const char *path, const char *buffer,
+    size_t size, off_t offset, struct fuse_file_info *fi) {
+
+    std::vector<BlockPtr> blocks;
+    get_write_blocks(path, &blocks);
+    if (blocks.empty()) {
+        // Path does not exist
+        return set_no_such_file_or_dir();
+    }
+
+    BlockPtr file_inode = blocks.back();
+    std::shared_ptr<const DirFileBlockData> resolved_data =
+        try_cast_dir_file(file_inode);
+
+    if (resolved_data->is_dir()) {
+        return set_error_because_dir();
+    }
+
+    std::string file_contents;
+    read_file_contents(&file_contents, resolved_data);
+
+    if (static_cast<std::size_t>(offset) > file_contents.size()) {
+        return -1;
+    }
+    file_contents.replace(offset, std::string::npos, buffer, size);
+    recursive_free_children_blocks(file_inode);
+    write_file_starting_at_node(&blocks, file_contents);
+    // Return number of bytes written
+    return size;
+}
+
+
+static void add_link_layer(const std::vector<BlockPtr>& blocks_to_link_to,
+    std::vector<BlockPtr>* new_layer, std::size_t branching_factor,
+    std::shared_ptr<BlockManager> block_manager) {
+    for (std::size_t i = 0; i < blocks_to_link_to.size() / branching_factor;
+         ++i) {
+        std::vector<BlockId> child_links;
+        for (std::size_t j = 0; j < branching_factor; ++j) {
+            std::size_t block_index = (i * branching_factor) + j;
+            if (block_index > blocks_to_link_to.size()) {
+                break;
+            }
+            child_links.push_back(block_index);
+        }
+        new_layer->push_back(
+            block_manager->create_block(
+                std::make_shared<const LinkBlockData>(child_links)));
+    }
+}
+
+
+void BlockFuse::write_file_starting_at_node(
+    std::vector<BlockPtr>* blocks,
+    const std::string& file_contents) {
+    // Rough algorithm:
+    // 1. Split file_contents into leaf blocks based
+    //    on the maximum number of bytes a block can
+    //    hold.
+    // 2. Build a tree of links to those leaf blocks.
+    // 3. Connect the base of that tree to the last
+    //    block in blocks.
+    // 4. Update all blocks in blocks to reflect new
+    //    file system.
+
+    assert(blocks->size() != 0);
+
+    // Step 1: split file contents into leaf blocks
+    std::size_t num_leaves = file_contents.size() / BYTES_PER_BLOCK;
+    if ((num_leaves * BYTES_PER_BLOCK) != file_contents.size()) {
+        ++num_leaves;
+    }
+    int depth = ceil(log(num_leaves) / log(BRANCHING_FACTOR));
+
+    std::vector<std::shared_ptr<const FileContentsBlockData>> leaf_data;
+    for (std::size_t i = 0; i < num_leaves; ++i) {
+        std::size_t end =
+            std::max((i + 1) * BYTES_PER_BLOCK,
+                file_contents.size());
+        leaf_data.push_back(
+            std::make_shared<const FileContentsBlockData>(
+                file_contents.substr(i * BYTES_PER_BLOCK, end)));
+    }
+
+    // Step 2: build a tree of links to those leaf blocks
+    std::vector<BlockPtr> blocks_to_link_to;
+    for (auto iter = leaf_data.cbegin(); iter != leaf_data.cend(); ++iter) {
+        blocks_to_link_to.push_back(block_manager_->create_block(*iter));
+    }
+
+    for (std::size_t i = 0; i < static_cast<std::size_t>(depth); ++i) {
+        std::vector<BlockPtr> links;
+        add_link_layer(blocks_to_link_to, &links, BRANCHING_FACTOR,
+            block_manager_);
+        blocks_to_link_to = links;
+    }
+
+    std::shared_ptr<const DirFileBlockData> file_inode =
+        try_cast_dir_file(blocks->back());
+    std::vector<BlockId> ids_to_remove = file_inode->get_children();
+
+    std::vector<BlockId> ids_to_add;
+    for (auto iter = blocks_to_link_to.cbegin();
+         iter != blocks_to_link_to.cend(); ++iter) {
+        ids_to_add.push_back((*iter)->get_id());
+    }
+
+    // Steps 3 and 4: replace existing blocks
+
+    // Switch out the last element in blocks. This way, When we write
+    // blocks over when calling replace_chain, we will get the
+    // new size and access/mod times.
+    time_t cur_time = time(NULL);
+    std::shared_ptr<const DirFileBlockData> updated_file =
+        std::make_shared<const DirFileBlockData>(
+            file_inode->get_name(),
+            Stat(file_inode->get_stat(),
+                file_contents.size(),
+                cur_time,
+                cur_time,
+                cur_time),
+            file_inode->get_children());
+
+    blocks->back() = std::make_shared<const Block>(
+        blocks->back()->get_id(), updated_file);
+
+    // FIXME: add concurrency protection
+    root_block_ =
+        replace_chain(blocks->rbegin(), blocks->rend(),
+            ids_to_remove, ids_to_add);
 }
 
 void BlockFuse::get_file_contents(
