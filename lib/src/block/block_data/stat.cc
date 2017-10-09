@@ -23,6 +23,17 @@ Stat::Stat(const proto::StatProto& proto)
       proto.status_change_time()) {
 }
 
+Stat::Stat(const Stat& stat, uint64_t size, time_t access_time,
+    time_t mod_time, time_t status_change_time)
+  : mode_(stat.mode_),
+    uid_(stat.uid_),
+    gid_(stat.gid_),
+    size_(size),
+    access_time_(access_time),
+    mod_time_(mod_time),
+    status_change_time_(status_change_time) {
+}
+
 Stat::~Stat() {
 }
 

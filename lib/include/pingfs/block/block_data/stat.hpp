@@ -14,6 +14,8 @@ class Stat {
     explicit Stat(const Mode& mode, uint32_t uid, uint32_t gid,
         uint64_t size, time_t access_time, time_t mod_time,
         time_t status_change_time);
+    Stat(const Stat& stat, uint64_t size, time_t access_time,
+        time_t mod_time, time_t status_change_time);
 
     explicit Stat(const proto::StatProto& proto);
     ~Stat();
