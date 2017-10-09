@@ -90,16 +90,16 @@ class BlockFuse : public FuseWrapper {
      * and ending at {@code end}, creating a parallel chain of blocks,
      * replacing children along the way.
      *
-     * @param child_id_to_remove If not null, then remove this id from
-     * the children of the begin iterator.
-     * @param child_id_to_add If not null, then add this id to the
-     * children of the begin iterator.
+     * @param children_to_remove Remove these ids from the children of
+     * the begin iterator.
+     * @param children_to_add Add these ids to the children of the begin
+     * iterator.
      */
     BlockPtr replace_chain(
         std::vector<BlockPtr>::reverse_iterator begin,
         std::vector<BlockPtr>::reverse_iterator end,
-        BlockId* child_id_to_remove,
-        BlockId* child_id_to_add);
+        const std::vector<BlockId>& children_to_remove,
+        const std::vector<BlockId>& children_to_add);
 
     /**
      * Populates {@code children} with the immediate files and dirs of {@code

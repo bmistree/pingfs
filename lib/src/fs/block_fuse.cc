@@ -214,8 +214,8 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
     BlockPtr new_dir_block = block_manager_->create_block(new_dir_data_block);
     BlockId child_id_to_add = new_dir_block->get_id();
     BlockPtr last_block_replaced =
-        replace_chain(blocks.rbegin(), blocks.rend(), nullptr,
-            &child_id_to_add);
+        replace_chain(blocks.rbegin(), blocks.rend(), {},
+            {child_id_to_add});
 
     // FIXME: Add lock guard to switch out root block
     root_block_ = last_block_replaced;
@@ -250,18 +250,35 @@ static bool get_children(BlockPtr block, std::vector<BlockId>* children) {
     return false;
 }
 
+static void remove_ids(
+    std::vector<BlockId>* to_remove_from,
+    const std::vector<BlockId>& to_remove) {
+
+    for (auto to_remove_iter = to_remove.cbegin();
+         to_remove_iter != to_remove.cend();
+         ++to_remove_iter) {
+        auto remove_iter = std::find(
+            to_remove_from->begin(),
+            to_remove_from->end(),
+            *to_remove_iter);
+        assert(remove_iter != to_remove_from->end());
+        to_remove_from->erase(remove_iter);
+    }
+}
+
 
 BlockPtr BlockFuse::replace_chain(
     std::vector<BlockPtr>::reverse_iterator begin,
     std::vector<BlockPtr>::reverse_iterator end,
-    BlockId* child_id_to_remove,
-    BlockId* child_id_to_add) {
+    const std::vector<BlockId>& children_to_remove,
+    const std::vector<BlockId>& children_to_add) {
     BlockPtr last_replaced_block;
 
     // child_id_to_remove only indicates the first
     // id to remove. Use this helper to replace the
     // pointer if nullptr was passed in.
-    BlockId child_id_to_remove_helper;
+    std::vector<BlockId> children_to_remove_helper =
+        children_to_remove;
 
     for (auto iter = begin; iter != end; ++iter) {
         BlockPtr block_to_replace = *iter;
@@ -269,27 +286,24 @@ BlockPtr BlockFuse::replace_chain(
         std::vector<BlockId> block_to_replace_children;
         get_children(block_to_replace, &block_to_replace_children);
 
-        // child_id_to_remove contains the id of either the last
+        // children_to_remove_hlper contains the id of either the last
         // block that we replaced or of the directory/link
         // that we're removing. Erase it.
-        if (child_id_to_remove != nullptr) {
-            auto remove_iter = std::find(
-                block_to_replace_children.begin(),
-                block_to_replace_children.end(),
-                *child_id_to_remove);
-            assert(remove_iter != block_to_replace_children.end());
-            block_to_replace_children.erase(remove_iter);
-        } else {
-            child_id_to_remove = &child_id_to_remove_helper;
-        }
-        *child_id_to_remove = block_to_replace->get_id();
+        remove_ids(&block_to_replace_children, children_to_remove_helper);
+
+        children_to_remove_helper = {block_to_replace->get_id()};
 
         if (last_replaced_block) {
             // Add the id of the last replaced block
             block_to_replace_children.push_back(
                 last_replaced_block->get_id());
-        } else if (child_id_to_add) {
-            block_to_replace_children.push_back(*child_id_to_add);
+        } else {
+            // This is the first block that we are replacing;
+            // add the requested passed-in blocks to it.
+            block_to_replace_children.insert(
+                block_to_replace_children.end(),
+                children_to_add.begin(),
+                children_to_add.end());
         }
         // FIXME: Set access/changed time on each directory.
         last_replaced_block = replace_block_with_diff_children(
@@ -331,7 +345,7 @@ int BlockFuse::rmdir(const char *path) {
     BlockPtr last_replaced_block = replace_chain(
         // Should correspond to the block in blocks[last_dir_file_index]
         blocks.rbegin() + (blocks.size() - last_dir_file_index - 1),
-        blocks.rend(), &child_id_to_remove, nullptr);
+        blocks.rend(), {child_id_to_remove}, {});
 
     // Switch root block with last created block
     root_block_ = last_replaced_block;
