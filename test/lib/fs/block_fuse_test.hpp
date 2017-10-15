@@ -6,6 +6,7 @@
 
 #include <pingfs/fs/block_fuse.hpp>
 
+#include <cassert>
 #include <memory>
 #include <string>
 
@@ -222,35 +223,51 @@ TEST(BlockFuse, WriteFailsDne) {
             &info));
 }
 
-TEST(BlockFuse, WriteReadSucceeds) {
+static void test_create_write_read(
+    const std::string& data_to_write) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
         std::make_shared<pingfs::MemoryBlockManager>();
     pingfs::BlockFuse block_fuse(block_manager, 55);
     std::string filename = "/a.txt";
-    std::string test_data = "test";
     struct fuse_file_info info;
+
+    ASSERT_EQ(
+        block_fuse.create(filename.c_str(),
+            pingfs::Mode(pingfs::ReadWriteExecute::READ_WRITE,
+                pingfs::ReadWriteExecute::READ_WRITE,
+                pingfs::ReadWriteExecute::READ_WRITE,
+                pingfs::FileType::REGULAR).to_mode_t(),
+            &info),
+        0);
+
     // Testing that initial write works
     ASSERT_EQ(
         block_fuse.write(
-            filename.c_str(), test_data.c_str(),
-            test_data.size(), 0 /* offset */,
+            filename.c_str(), data_to_write.c_str(),
+            data_to_write.size(), 0 /* offset */,
             &info),
-        static_cast<int>(test_data.size()));
+        static_cast<int>(data_to_write.size()));
 
     // Ensure that getattr shows that the file exists
     struct stat stbuf;
     ASSERT_EQ(block_fuse.getattr(filename.c_str(), &stbuf), 0);
 
     // Ensure that read same data out
+    assert(data_to_write.size() < 128);
     char buffer[128];
-    block_fuse.read(filename.c_str(), buffer, test_data.size(),
+
+    block_fuse.read(filename.c_str(), buffer, data_to_write.size(),
         0 /* offset */, &info);
 
     // Compare to ensure that the read string was the same
     // as what was written.
-    for (std::size_t i = 0; i < test_data.size(); ++i) {
-        ASSERT_EQ(test_data[i], buffer[i]);
+    for (std::size_t i = 0; i < data_to_write.size(); ++i) {
+        ASSERT_EQ(data_to_write[i], buffer[i]);
     }
+}
+
+TEST(BlockFuse, WriteReadSucceeds) {
+    test_create_write_read("test");
 }
 
 // FIXME: Still must test reads and writes with offsets

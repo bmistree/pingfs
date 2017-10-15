@@ -713,28 +713,6 @@ void BlockFuse::read_file_contents(std::string* result,
     }
 }
 
-
-void BlockFuse::get_write_blocks(const char* path,
-    std::vector<BlockPtr>* blocks) {
-
-    get_path(path, blocks);
-    // The file existed
-    if (!blocks->empty()) {
-        return;
-    }
-
-    // The file did not exist; check if the directory up to it did.
-    // If the directory does exist, then create the file itself.
-    create_file_block(path, blocks,
-        // FIXME: specify correct file size
-        0 /* file_size */,
-        // FIXME: Specify the correct mode here
-        Mode(ReadWriteExecute::READ_WRITE_EXECUTE,
-            ReadWriteExecute::READ_EXECUTE,
-            ReadWriteExecute::EXECUTE,
-            FileType::REGULAR));
-}
-
 static Stat gen_file_stat(const Mode& mode, std::size_t size) {
     time_t cur_time = time(NULL);
     return Stat(mode,
@@ -797,12 +775,10 @@ int BlockFuse::write(const char *path, const char *buffer,
     size_t size, off_t offset, struct fuse_file_info *fi) {
 
     std::vector<BlockPtr> blocks;
-    get_write_blocks(path, &blocks);
+    get_path(path, &blocks);
     if (blocks.empty()) {
-        // Path does not exist
         return set_no_such_file_or_dir();
     }
-
     BlockPtr file_inode = blocks.back();
     std::shared_ptr<const DirFileBlockData> resolved_data =
         try_cast_dir_file(file_inode);
