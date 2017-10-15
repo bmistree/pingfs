@@ -165,7 +165,8 @@ class BlockFuse : public FuseWrapper {
      * return false and do not change {@code blocks}.
      */
     bool create_file_block(const char* path,
-        std::vector<BlockPtr>* blocks);
+        std::vector<BlockPtr>* blocks, std::size_t file_size,
+        const Mode& mode);
 
 
  private:

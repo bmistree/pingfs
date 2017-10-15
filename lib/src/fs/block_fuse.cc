@@ -720,25 +720,30 @@ void BlockFuse::get_write_blocks(const char* path,
 
     // The file did not exist; check if the directory up to it did.
     // If the directory does exist, then create the file itself.
-    create_file_block(path, blocks);
-}
-
-static Stat gen_file_stat() {
-    time_t cur_time = time(NULL);
-    return Stat(Mode(ReadWriteExecute::READ_WRITE_EXECUTE,
+    create_file_block(path, blocks,
+        // FIXME: specify correct file size
+        0 /* file_size */,
+        // FIXME: Specify the correct mode here
+        Mode(ReadWriteExecute::READ_WRITE_EXECUTE,
             ReadWriteExecute::READ_EXECUTE,
             ReadWriteExecute::EXECUTE,
-            FileType::REGULAR),
+            FileType::REGULAR));
+}
+
+static Stat gen_file_stat(const Mode& mode, std::size_t size) {
+    time_t cur_time = time(NULL);
+    return Stat(mode,
         getuid(),
         getgid(),
-        0 /* size */,
+        size,
         cur_time /* access_time */,
         cur_time /* mod_time */,
         cur_time /* status_change_time */);
 }
 
 bool BlockFuse::create_file_block(const char* path,
-    std::vector<BlockPtr>* blocks) {
+    std::vector<BlockPtr>* blocks, std::size_t file_size,
+    const Mode& mode) {
 
     get_path(path, blocks);
     // The file existed; do not try to create the file
@@ -763,7 +768,7 @@ bool BlockFuse::create_file_block(const char* path,
     std::shared_ptr<const DirFileBlockData> new_file_data =
         std::make_shared<const DirFileBlockData>(
             separated_path.back(),
-            gen_file_stat(),
+            gen_file_stat(mode, file_size),
             empty);
 
     // Create a block associated with this file and add it to
