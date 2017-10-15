@@ -22,6 +22,11 @@ static int set_no_such_file_or_dir() {
     return -ENOENT;
 }
 
+static int set_file_exists() {
+    errno = EEXIST;
+    return -EEXIST;
+}
+
 static int set_error_because_dir() {
     errno = EISDIR;
     return -EISDIR;
@@ -927,5 +932,28 @@ void BlockFuse::get_file_contents(
     get_contents_helper(
         file_data->get_children(), file_blocks, block_manager_);
 }
+
+int BlockFuse::create(const char *path, mode_t mode,
+    struct fuse_file_info *fi) {
+    std::vector<BlockPtr> blocks;
+    get_path(path, &blocks);
+    if (!blocks.empty()) {
+        return set_file_exists();
+    }
+    bool succeeded =
+        create_file_block(
+            path, &blocks,
+            0 /* file_size */,
+            Mode(mode));
+    if (!succeeded) {
+        // FIXME: There may be other error conditions to
+        // consider.
+        // The path up to the file did not exist; cannot
+        // create the file itself.
+        return set_no_such_file_or_dir();
+    }
+    return 0;
+}
+
 
 }  // namespace pingfs
