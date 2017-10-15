@@ -40,6 +40,10 @@ class BlockFuse : public FuseWrapper {
         off_t offset, struct fuse_file_info *fi) override;
     int write(const char *path, const char *buffer,
         size_t size, off_t offset, struct fuse_file_info *fi) override;
+    int create(const char *path, mode_t mode,
+        struct fuse_file_info *fi) override {
+        throw "Unsupported";
+    }
 
  private:
     static const std::size_t BYTES_PER_BLOCK = 1000;

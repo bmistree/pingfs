@@ -24,6 +24,8 @@ class FuseWrapper : public FuseFactory {
         off_t offset, struct fuse_file_info *fi) = 0;
     virtual int write(const char *path, const char *buffer,
         size_t size, off_t offset, struct fuse_file_info *fi) = 0;
+    virtual int create(const char *path, mode_t mode,
+        struct fuse_file_info *fi) = 0;
 };
 
 namespace fuse_wrapper {
@@ -40,6 +42,8 @@ int read(const char *path, char *buffer, size_t size,
     off_t offset, struct fuse_file_info *fi);
 int write(const char *path, const char *buffer,
     size_t size, off_t offset, struct fuse_file_info *fi);
+int create(const char *path, mode_t mode,
+    struct fuse_file_info *fi);
 
 }  // namespace fuse_wrapper
 
