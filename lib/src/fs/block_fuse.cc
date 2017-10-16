@@ -795,10 +795,8 @@ int BlockFuse::write(const char *path, const char *buffer,
     }
     file_contents.replace(offset, std::string::npos, buffer, size);
     recursive_free_children_blocks(file_inode);
-    if (!file_contents.empty()) {
-        // Only write data if there are any bytes to write
-        write_file_starting_at_node(&blocks, file_contents);
-    }
+
+    write_file_starting_at_node(&blocks, file_contents);
     // Return number of bytes written
     return size;
 }
@@ -823,23 +821,13 @@ static void add_link_layer(const std::vector<BlockPtr>& blocks_to_link_to,
     }
 }
 
+void BlockFuse::replace_blocks_for_contents(
+    const std::vector<BlockPtr>* blocks,
+    const std::string& file_contents,
+    std::vector<BlockId>* ids_to_add) {
 
-void BlockFuse::write_file_starting_at_node(
-    std::vector<BlockPtr>* blocks,
-    const std::string& file_contents) {
-    // Rough algorithm:
-    // 1. Split file_contents into leaf blocks based
-    //    on the maximum number of bytes a block can
-    //    hold.
-    // 2. Build a tree of links to those leaf blocks.
-    // 3. Connect the base of that tree to the last
-    //    block in blocks.
-    // 4. Update all blocks in blocks to reflect new
-    //    file system.
-
-    assert(blocks->size() != 0);
+    assert(!blocks->empty());
     assert(!file_contents.empty());
-
     // Step 1: split file contents into leaf blocks
     std::size_t num_leaves = file_contents.size() / BYTES_PER_BLOCK;
     if ((num_leaves * BYTES_PER_BLOCK) != file_contents.size()) {
@@ -870,15 +858,39 @@ void BlockFuse::write_file_starting_at_node(
         blocks_to_link_to = links;
     }
 
-    std::shared_ptr<const DirFileBlockData> file_inode =
-        try_cast_dir_file(blocks->back());
-    std::vector<BlockId> ids_to_remove = file_inode->get_children();
-
-    std::vector<BlockId> ids_to_add;
     for (auto iter = blocks_to_link_to.cbegin();
          iter != blocks_to_link_to.cend(); ++iter) {
-        ids_to_add.push_back((*iter)->get_id());
+        ids_to_add->push_back((*iter)->get_id());
     }
+}
+
+
+void BlockFuse::write_file_starting_at_node(
+    std::vector<BlockPtr>* blocks,
+    const std::string& file_contents) {
+    // Rough algorithm:
+    // 1. Split file_contents into leaf blocks based
+    //    on the maximum number of bytes a block can
+    //    hold.
+    // 2. Build a tree of links to those leaf blocks.
+    // 3. Connect the base of that tree to the last
+    //    block in blocks.
+    // 4. Update all blocks in blocks to reflect new
+    //    file system.
+
+    assert(blocks->size() != 0);
+
+    std::vector<BlockId> ids_to_add;
+
+    if (!file_contents.empty()) {
+        replace_blocks_for_contents(
+            blocks,
+            file_contents,
+            &ids_to_add);
+    }
+    std::shared_ptr<const DirFileBlockData> file_inode =
+        try_cast_dir_file(blocks->back());
+
 
     // Steps 3 and 4: replace existing blocks
 
@@ -902,7 +914,7 @@ void BlockFuse::write_file_starting_at_node(
     // FIXME: add concurrency protection
     root_block_ =
         replace_chain(blocks->rbegin(), blocks->rend(),
-            ids_to_remove, ids_to_add);
+            file_inode->get_children(), ids_to_add);
 }
 
 void BlockFuse::get_file_contents(

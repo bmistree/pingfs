@@ -166,6 +166,16 @@ class BlockFuse : public FuseWrapper {
         std::vector<BlockPtr>* blocks, std::size_t file_size,
         const Mode& mode);
 
+    /**
+     * Add blocks for {@code file_contents} to the end of {@code blocks}.
+     * Update {@code ids_to_add} with the ids of new blocks to add.
+     * Note that {@code file_contents} must be non-empty.
+     */
+    void replace_blocks_for_contents(
+        const std::vector<BlockPtr>* blocks,
+        const std::string& file_contents,
+        std::vector<BlockId>* ids_to_add);
+
 
  private:
     std::shared_ptr<BlockManager> block_manager_;

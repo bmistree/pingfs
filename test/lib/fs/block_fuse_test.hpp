@@ -290,6 +290,15 @@ TEST(BlockFuse, WriteEmptySucceeds) {
     test_create_write_read(to_write_vec);
 }
 
+TEST(BlockFuse, MultipleWrites) {
+    std::vector<std::string> to_write_vec;
+    to_write_vec.push_back("a");
+    to_write_vec.push_back("b");
+    to_write_vec.push_back("c");
+    to_write_vec.push_back("");
+    test_create_write_read(to_write_vec);
+}
+
 
 // FIXME: Still must test reads and writes with offsets
 
