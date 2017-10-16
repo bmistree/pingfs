@@ -270,6 +270,11 @@ TEST(BlockFuse, WriteReadSucceeds) {
     test_create_write_read("test");
 }
 
+TEST(BlockFuse, WriteEmptySucceeds) {
+    test_create_write_read("");
+}
+
+
 // FIXME: Still must test reads and writes with offsets
 
 // FIXME: Still must test that handle large files (want to

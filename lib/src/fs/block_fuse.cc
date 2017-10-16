@@ -795,7 +795,10 @@ int BlockFuse::write(const char *path, const char *buffer,
     }
     file_contents.replace(offset, std::string::npos, buffer, size);
     recursive_free_children_blocks(file_inode);
-    write_file_starting_at_node(&blocks, file_contents);
+    if (!file_contents.empty()) {
+        // Only write data if there are any bytes to write
+        write_file_starting_at_node(&blocks, file_contents);
+    }
     // Return number of bytes written
     return size;
 }
@@ -835,6 +838,7 @@ void BlockFuse::write_file_starting_at_node(
     //    file system.
 
     assert(blocks->size() != 0);
+    assert(!file_contents.empty());
 
     // Step 1: split file contents into leaf blocks
     std::size_t num_leaves = file_contents.size() / BYTES_PER_BLOCK;
