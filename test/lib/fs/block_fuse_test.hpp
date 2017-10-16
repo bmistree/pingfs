@@ -9,6 +9,7 @@
 #include <cassert>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -223,8 +224,39 @@ TEST(BlockFuse, WriteFailsDne) {
             &info));
 }
 
+static void test_write_read(const std::string& filename,
+    const std::string& data_to_write,
+    pingfs::BlockFuse* block_fuse) {
+    struct fuse_file_info info;
+
+    // Testing that initial write works
+    ASSERT_EQ(
+        block_fuse->write(
+            filename.c_str(), data_to_write.c_str(),
+            data_to_write.size(), 0 /* offset */,
+            &info),
+        static_cast<int>(data_to_write.size()));
+
+    // Ensure that getattr shows that the file exists
+    struct stat stbuf;
+    ASSERT_EQ(block_fuse->getattr(filename.c_str(), &stbuf), 0);
+
+    // Ensure that read same data out
+    assert(data_to_write.size() < 128);
+    char buffer[128];
+
+    block_fuse->read(filename.c_str(), buffer, data_to_write.size(),
+        0 /* offset */, &info);
+
+    // Compare to ensure that the read string was the same
+    // as what was written.
+    for (std::size_t i = 0; i < data_to_write.size(); ++i) {
+        ASSERT_EQ(data_to_write[i], buffer[i]);
+    }
+}
+
 static void test_create_write_read(
-    const std::string& data_to_write) {
+    const std::vector<std::string>& to_write_vec) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
         std::make_shared<pingfs::MemoryBlockManager>();
     pingfs::BlockFuse block_fuse(block_manager, 55);
@@ -240,38 +272,22 @@ static void test_create_write_read(
             &info),
         0);
 
-    // Testing that initial write works
-    ASSERT_EQ(
-        block_fuse.write(
-            filename.c_str(), data_to_write.c_str(),
-            data_to_write.size(), 0 /* offset */,
-            &info),
-        static_cast<int>(data_to_write.size()));
-
-    // Ensure that getattr shows that the file exists
-    struct stat stbuf;
-    ASSERT_EQ(block_fuse.getattr(filename.c_str(), &stbuf), 0);
-
-    // Ensure that read same data out
-    assert(data_to_write.size() < 128);
-    char buffer[128];
-
-    block_fuse.read(filename.c_str(), buffer, data_to_write.size(),
-        0 /* offset */, &info);
-
-    // Compare to ensure that the read string was the same
-    // as what was written.
-    for (std::size_t i = 0; i < data_to_write.size(); ++i) {
-        ASSERT_EQ(data_to_write[i], buffer[i]);
+    for (auto iter = to_write_vec.cbegin();
+         iter != to_write_vec.cend(); ++iter) {
+        test_write_read(filename, *iter, &block_fuse);
     }
 }
 
 TEST(BlockFuse, WriteReadSucceeds) {
-    test_create_write_read("test");
+    std::vector<std::string> to_write_vec;
+    to_write_vec.push_back("test");
+    test_create_write_read(to_write_vec);
 }
 
 TEST(BlockFuse, WriteEmptySucceeds) {
-    test_create_write_read("");
+    std::vector<std::string> to_write_vec;
+    to_write_vec.push_back("");
+    test_create_write_read(to_write_vec);
 }
 
 
