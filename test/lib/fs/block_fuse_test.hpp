@@ -409,7 +409,28 @@ TEST(BlockFuse, ReadPastEnd) {
     ASSERT_EQ(read_contents, actual_contents);
 }
 
-// FIXME: Still must test reads with offsets
+TEST(BlockFuse, ReadOffset) {
+    std::string filename = "/a.txt";
+    std::shared_ptr<pingfs::BlockFuse> block_fuse;
+
+    // Initially write content into file and ensure
+    // that it's there
+    std::string actual_contents = "abcdefgh";
+    verify_create_write_read_to_file(
+        &block_fuse, filename, actual_contents);
+
+    struct fuse_file_info info;
+    char read_buffer[2];
+    ASSERT_EQ(block_fuse->read(filename.c_str(),
+            read_buffer,
+            2 /* size */,
+            3 /* offset */,
+            &info),
+        static_cast<int>(2));
+
+    std::string read_contents(read_buffer, 2);
+    ASSERT_EQ(read_contents, "de");
+}
 
 // FIXME: Still must test that handle large files (want to
 // test that we handle tree branches correctly).
