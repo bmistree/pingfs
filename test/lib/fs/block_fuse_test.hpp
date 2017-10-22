@@ -431,8 +431,16 @@ TEST(BlockFuse, ReadOffset) {
     ASSERT_EQ(read_contents, "de");
 }
 
-// FIXME: Still must test that handle large files (want to
-// test that we handle tree branches correctly).
+TEST(BlockFuse, CreateWriteReadLargeFile) {
+    std::shared_ptr<pingfs::BlockFuse> block_fuse;
+    std::string file_contents;
+    for (std::size_t i = 0; i < 10000; ++i) {
+        unsigned int helper;
+        file_contents += static_cast<char>(rand_r(&helper));
+    }
 
+    verify_create_write_read_to_file(
+        &block_fuse, "/a.txt", file_contents);
+}
 
 #endif

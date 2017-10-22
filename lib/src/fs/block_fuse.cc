@@ -302,7 +302,6 @@ BlockPtr BlockFuse::replace_chain(
         remove_ids(&block_to_replace_children, children_to_remove_helper);
 
         children_to_remove_helper = {block_to_replace->get_id()};
-
         if (last_replaced_block) {
             // Add the id of the last replaced block
             block_to_replace_children.push_back(
@@ -801,19 +800,33 @@ int BlockFuse::write(const char *path, const char *buffer,
     return size;
 }
 
-
-static void add_link_layer(const std::vector<BlockPtr>& blocks_to_link_to,
+/**
+ * @param blocks_to_link_to Blocks that a new link layer
+ * should point to.
+ * @param new_layer Initially empty; this method populates
+ * this vector with link blocks to {@code blocks_to_link_to}.
+ */
+static void add_link_layer(
+    const std::vector<BlockPtr>& blocks_to_link_to,
     std::vector<BlockPtr>* new_layer, std::size_t branching_factor,
     std::shared_ptr<BlockManager> block_manager) {
-    for (std::size_t i = 0; i < blocks_to_link_to.size() / branching_factor;
+
+    std::size_t blocks_over_branching_factor =
+        static_cast<std::size_t>(
+            ceil(static_cast<double>(blocks_to_link_to.size()) /
+                static_cast<double>(branching_factor)));
+
+    for (std::size_t i = 0; i < blocks_over_branching_factor;
          ++i) {
         std::vector<BlockId> child_links;
         for (std::size_t j = 0; j < branching_factor; ++j) {
             std::size_t block_index = (i * branching_factor) + j;
-            if (block_index > blocks_to_link_to.size()) {
+            if (block_index >= blocks_to_link_to.size()) {
                 break;
             }
-            child_links.push_back(block_index);
+
+            child_links.push_back(
+                blocks_to_link_to[block_index]->get_id());
         }
         new_layer->push_back(
             block_manager->create_block(
