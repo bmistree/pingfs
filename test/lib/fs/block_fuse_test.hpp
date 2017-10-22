@@ -231,18 +231,17 @@ static void verify_read(
 
     struct fuse_file_info info;
     char* buffer = new char[expected.size()];
-    block_fuse->read(filename.c_str(),
-        buffer,
-        expected.size(),
-        offset,
-        &info);
+    ASSERT_EQ(
+        block_fuse->read(filename.c_str(),
+            buffer,
+            expected.size(),
+            offset,
+            &info),
+        static_cast<int>(expected.size()));
 
-    // Compare to ensure that the read string was the same
-    // as what was written.
-    for (std::size_t i = 0; i < expected.size(); ++i) {
-        ASSERT_EQ(expected[i], buffer[i]);
-    }
+    std::string actually_read(buffer, expected.size());
     delete buffer;
+    ASSERT_EQ(actually_read, expected);
 }
 
 static void test_write_read(const std::string& filename,
