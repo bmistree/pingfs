@@ -319,8 +319,75 @@ TEST(BlockFuse, MultipleWrites) {
     test_create_write_read(to_write_vec);
 }
 
+static void verify_create_write_read_to_file(
+    std::shared_ptr<pingfs::BlockFuse>* block_fuse,
+    const std::string& filename,
+    const std::string& content) {
 
-// FIXME: Still must test reads and writes with offsets
+    create_file(filename, block_fuse);
+    struct fuse_file_info info;
+
+    // Writerite content into file and ensure that it's there
+    ASSERT_EQ((*block_fuse)->write(filename.c_str(),
+            content.c_str(),
+            content.size(),
+            0 /* offset */,
+            &info),
+        static_cast<int>(content.size()));
+    verify_read(*block_fuse, filename, 0 /* offset */,
+        content);
+}
+
+TEST(BlockFuse, WriteOffsetMiddle) {
+    std::string filename = "/a.txt";
+    std::shared_ptr<pingfs::BlockFuse> block_fuse;
+
+    // Initially write content into file and ensure
+    // that it's there
+    verify_create_write_read_to_file(
+        &block_fuse, filename, "abcdefgh");
+
+    // Write to offset of file and ensure content
+    // is updated
+    struct fuse_file_info info;
+    std::string expected_update = "axydefgh";
+    ASSERT_EQ(block_fuse->write(filename.c_str(),
+            "xy",
+            2 /* size to write */,
+            1 /* offset */,
+            &info),
+        2 /* num bytes written */);
+
+    verify_read(block_fuse, filename, 0 /* offset */,
+        expected_update);
+}
+
+TEST(BlockFuse, WriteOffsetEnd) {
+    std::string filename = "/a.txt";
+    std::shared_ptr<pingfs::BlockFuse> block_fuse;
+
+    // Initially write content into file and ensure
+    // that it's there
+    verify_create_write_read_to_file(
+        &block_fuse, filename, "abcdefgh");
+
+    // Write to offset of file and ensure content
+    // is updated
+    struct fuse_file_info info;
+    std::string expected_update = "abcdefgxy";
+    ASSERT_EQ(block_fuse->write(filename.c_str(),
+            "xy",
+            2 /* size to write */,
+            7 /* offset */,
+            &info),
+        2 /* num bytes written */);
+
+    verify_read(block_fuse, filename, 0 /* offset */,
+        expected_update);
+}
+
+
+// FIXME: Still must test reads with offsets
 
 // FIXME: Still must test that handle large files (want to
 // test that we handle tree branches correctly).

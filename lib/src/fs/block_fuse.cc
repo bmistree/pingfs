@@ -793,7 +793,7 @@ int BlockFuse::write(const char *path, const char *buffer,
     if (static_cast<std::size_t>(offset) > file_contents.size()) {
         return -1;
     }
-    file_contents.replace(offset, std::string::npos, buffer, size);
+    file_contents.replace(offset, size, buffer, size);
     recursive_free_children_blocks(file_inode);
 
     write_file_starting_at_node(&blocks, file_contents);
