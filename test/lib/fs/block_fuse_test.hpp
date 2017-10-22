@@ -386,6 +386,28 @@ TEST(BlockFuse, WriteOffsetEnd) {
         expected_update);
 }
 
+TEST(BlockFuse, ReadPastEnd) {
+    std::string filename = "/a.txt";
+    std::shared_ptr<pingfs::BlockFuse> block_fuse;
+
+    // Initially write content into file and ensure
+    // that it's there
+    std::string actual_contents = "abcdefgh";
+    verify_create_write_read_to_file(
+        &block_fuse, filename, actual_contents);
+
+    struct fuse_file_info info;
+    char read_buffer[128];
+    ASSERT_EQ(block_fuse->read(filename.c_str(),
+            read_buffer,
+            128 /* size */,
+            0 /* offset */,
+            &info),
+        static_cast<int>(actual_contents.size()));
+
+    std::string read_contents(read_buffer, actual_contents.size());
+    ASSERT_EQ(read_contents, actual_contents);
+}
 
 // FIXME: Still must test reads with offsets
 
