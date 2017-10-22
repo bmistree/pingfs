@@ -226,7 +226,7 @@ TEST(BlockFuse, WriteFailsDne) {
 
 static void test_write_read(const std::string& filename,
     const std::string& data_to_write,
-    pingfs::BlockFuse* block_fuse) {
+    std::shared_ptr<pingfs::BlockFuse> block_fuse) {
     struct fuse_file_info info;
 
     // Testing that initial write works
@@ -255,26 +255,34 @@ static void test_write_read(const std::string& filename,
     }
 }
 
-static void test_create_write_read(
-    const std::vector<std::string>& to_write_vec) {
+static void create_file(
+    const std::string& filename,
+    std::shared_ptr<pingfs::BlockFuse>* block_fuse) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
         std::make_shared<pingfs::MemoryBlockManager>();
-    pingfs::BlockFuse block_fuse(block_manager, 55);
-    std::string filename = "/a.txt";
+    *block_fuse =
+        std::make_shared<pingfs::BlockFuse>(
+            pingfs::BlockFuse(block_manager, 55));
     struct fuse_file_info info;
 
     ASSERT_EQ(
-        block_fuse.create(filename.c_str(),
+        (*block_fuse)->create(filename.c_str(),
             pingfs::Mode(pingfs::ReadWriteExecute::READ_WRITE,
                 pingfs::ReadWriteExecute::READ_WRITE,
                 pingfs::ReadWriteExecute::READ_WRITE,
                 pingfs::FileType::REGULAR).to_mode_t(),
             &info),
         0);
+}
 
+static void test_create_write_read(
+    const std::vector<std::string>& to_write_vec) {
+    std::string filename = "/a.txt";
+    std::shared_ptr<pingfs::BlockFuse> block_fuse;
+    create_file(filename, &block_fuse);
     for (auto iter = to_write_vec.cbegin();
          iter != to_write_vec.cend(); ++iter) {
-        test_write_read(filename, *iter, &block_fuse);
+        test_write_read(filename, *iter, block_fuse);
     }
 }
 
