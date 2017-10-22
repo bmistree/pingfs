@@ -224,6 +224,27 @@ TEST(BlockFuse, WriteFailsDne) {
             &info));
 }
 
+static void verify_read(
+    std::shared_ptr<pingfs::BlockFuse> block_fuse,
+    const std::string& filename, off_t offset,
+    const std::string& expected) {
+
+    struct fuse_file_info info;
+    char* buffer = new char[expected.size()];
+    block_fuse->read(filename.c_str(),
+        buffer,
+        expected.size(),
+        offset,
+        &info);
+
+    // Compare to ensure that the read string was the same
+    // as what was written.
+    for (std::size_t i = 0; i < expected.size(); ++i) {
+        ASSERT_EQ(expected[i], buffer[i]);
+    }
+    delete buffer;
+}
+
 static void test_write_read(const std::string& filename,
     const std::string& data_to_write,
     std::shared_ptr<pingfs::BlockFuse> block_fuse) {
@@ -242,17 +263,8 @@ static void test_write_read(const std::string& filename,
     ASSERT_EQ(block_fuse->getattr(filename.c_str(), &stbuf), 0);
 
     // Ensure that read same data out
-    assert(data_to_write.size() < 128);
-    char buffer[128];
-
-    block_fuse->read(filename.c_str(), buffer, data_to_write.size(),
-        0 /* offset */, &info);
-
-    // Compare to ensure that the read string was the same
-    // as what was written.
-    for (std::size_t i = 0; i < data_to_write.size(); ++i) {
-        ASSERT_EQ(data_to_write[i], buffer[i]);
-    }
+    verify_read(block_fuse, filename, 0 /* offset */,
+        data_to_write);
 }
 
 static void create_file(
