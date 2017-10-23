@@ -84,6 +84,9 @@ BlockPtr replace_chain(
     const std::vector<BlockId>& children_to_add,
     std::shared_ptr<BlockManager> block_manager);
 
+void recursive_free_children_blocks(
+    BlockPtr block,
+    std::shared_ptr<BlockManager> block_manager);
 
 }  // namespace block_util
 

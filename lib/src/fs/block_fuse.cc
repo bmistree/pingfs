@@ -220,33 +220,9 @@ int BlockFuse::rmdir(const char *path) {
         block_manager_->free_block((*iter)->get_id());
     }
 
-    recursive_free_children_blocks(blocks.back());
+    block_util::recursive_free_children_blocks(
+        blocks.back(), block_manager_);
     return 0;
-}
-
-void BlockFuse::recursive_free_children_blocks(BlockPtr block) {
-    std::vector<BlockId> children;
-    if (!block_util::get_children(block, &children)) {
-        // This block cannot have children. Skip it.
-        return;
-    }
-
-    // Fetch children blocks so that we can delete their children
-    std::shared_ptr<const BlockResponse> response =
-        block_manager_->get_blocks(BlockRequest(children));
-
-    // Free children blocks
-    for (auto iter = children.cbegin(); iter != children.cend();
-         ++iter) {
-        block_manager_->free_block(*iter);
-    }
-
-    // Try deleting children of children
-    const std::vector<BlockPtr>& child_blocks = response->get_blocks();
-    for (auto iter = child_blocks.cbegin();
-         iter != child_blocks.cend(); ++iter) {
-        recursive_free_children_blocks(*iter);
-    }
 }
 
 
@@ -576,7 +552,8 @@ int BlockFuse::write(const char *path, const char *buffer,
         return -1;
     }
     file_contents.replace(offset, size, buffer, size);
-    recursive_free_children_blocks(file_inode);
+    block_util::recursive_free_children_blocks(
+        file_inode, block_manager_);
 
     write_file_starting_at_node(&blocks, file_contents);
     // Return number of bytes written

@@ -80,8 +80,6 @@ class BlockFuse : public FuseWrapper {
     bool mkdir_valid(const char* path,
         std::vector<BlockPtr>* blocks, std::string* dir_to_make);
 
-    void recursive_free_children_blocks(BlockPtr block);
-
     /**
      * Populates {@code children} with the immediate files and dirs of {@code
      * dir_file}.

@@ -242,6 +242,33 @@ BlockPtr replace_chain(
 }
 
 
+void recursive_free_children_blocks(
+    BlockPtr block,
+    std::shared_ptr<BlockManager> block_manager) {
+    std::vector<BlockId> children;
+    if (!get_children(block, &children)) {
+        // This block cannot have children. Skip it.
+        return;
+    }
+
+    // Fetch children blocks so that we can delete their children
+    std::shared_ptr<const BlockResponse> response =
+        block_manager->get_blocks(BlockRequest(children));
+
+    // Free children blocks
+    for (auto iter = children.cbegin(); iter != children.cend();
+         ++iter) {
+        block_manager->free_block(*iter);
+    }
+
+    // Try deleting children of children
+    const std::vector<BlockPtr>& child_blocks = response->get_blocks();
+    for (auto iter = child_blocks.cbegin();
+         iter != child_blocks.cend(); ++iter) {
+        recursive_free_children_blocks(*iter, block_manager);
+    }
+}
+
 }  // namespace block_util
 
 }  // namespace pingfs
