@@ -129,13 +129,6 @@ class BlockFuse : public FuseWrapper {
         const std::string& file_contents);
 
     /**
-     * Either get the blocks leading up to the inode
-     * for a given path, or creates a file for the given path.
-     */
-    void get_write_blocks(const char* path,
-        std::vector<BlockPtr>* blocks);
-
-    /**
      * Create a file block associated with path. Returns true
      * and the path to the new file in {@code blocks}, if it
      * can create the file. If it cannot (e.g., if the file
