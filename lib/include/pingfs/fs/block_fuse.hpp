@@ -125,10 +125,6 @@ class BlockFuse : public FuseWrapper {
      * @param file_contents The string to write for the file.
      */
     void write_file_starting_at_node(
-        const std::vector<BlockPtr>* blocks,
-        const std::string& file_contents);
-
-    void write_file_starting_at_node(
         std::vector<BlockPtr>* blocks,
         const std::string& file_contents);
 
