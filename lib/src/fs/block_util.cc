@@ -94,6 +94,19 @@ bool get_children(BlockPtr block, std::vector<BlockId>* children) {
 }
 
 
+void file_blocks_to_contents(
+    const std::vector<
+      std::shared_ptr<const FileContentsBlockData>>& file_blocks,
+    std::string* contents) {
+
+    for (auto iter = file_blocks.cbegin(); iter != file_blocks.cend();
+         ++iter) {
+        const std::string& data = *((*iter)->get_data());
+        contents->insert(contents->end(), data.cbegin(), data.cend());
+    }
+}
+
+
 }  // namespace block_util
 
 }  // namespace pingfs

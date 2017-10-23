@@ -7,6 +7,7 @@
 #include <pingfs/block/block_data/link_block_data.hpp>
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -48,6 +49,14 @@ bool find_path(
  */
 bool get_children(BlockPtr block, std::vector<BlockId>* children);
 
+/**
+ * Composes all data in {@code file_blocks} into a single string,
+ * which this method stores in {@code contents} before returning.
+ */
+void file_blocks_to_contents(
+    const std::vector<
+      std::shared_ptr<const FileContentsBlockData>>& file_blocks,
+    std::string* contents);
 
 }  // namespace block_util
 

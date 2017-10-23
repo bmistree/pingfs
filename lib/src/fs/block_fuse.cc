@@ -529,18 +529,6 @@ int BlockFuse::readdir(const char *path, void *buf,
     return 0;
 }
 
-static void file_blocks_to_contents(
-    const std::vector<
-      std::shared_ptr<const FileContentsBlockData>>& file_blocks,
-    std::string* contents) {
-
-    for (auto iter = file_blocks.cbegin(); iter != file_blocks.cend();
-         ++iter) {
-        const std::string& data = *((*iter)->get_data());
-        contents->insert(contents->end(), data.cbegin(), data.cend());
-    }
-}
-
 
 int BlockFuse::read(const char *path, char *buffer, size_t size,
     off_t offset, struct fuse_file_info *fi)  {
@@ -571,7 +559,7 @@ int BlockFuse::read(const char *path, char *buffer, size_t size,
     std::vector<std::shared_ptr<const FileContentsBlockData>> file_blocks;
     get_file_contents(dir_file, &file_blocks);
     std::string contents;
-    file_blocks_to_contents(file_blocks, &contents);
+    block_util::file_blocks_to_contents(file_blocks, &contents);
 
     // FIXME: skipping populating fuse_file_info struct
     if (static_cast<std::size_t>(offset) > contents.size()) {
