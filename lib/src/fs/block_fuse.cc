@@ -176,29 +176,6 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
     return 0;
 }
 
-/**
- * Returns true if {@code block} can be cast to a link block or dir
- * file block, and false otherwise. If {@code block} can be cast to
- * a link/dir file block, then populate {@code children} with that
- * block's children.
- */
-static bool get_children(BlockPtr block, std::vector<BlockId>* children) {
-    std::shared_ptr<const LinkBlockData> link_data =
-        block_util::try_cast_link(block);
-    if (link_data) {
-        *children = link_data->get_children();
-        return true;
-    }
-
-    std::shared_ptr<const DirFileBlockData> dir_file =
-        block_util::try_cast_dir_file(block);
-    if (dir_file) {
-        *children = dir_file->get_children();
-        return true;
-    }
-    return false;
-}
-
 static void remove_ids(
     std::vector<BlockId>* to_remove_from,
     const std::vector<BlockId>& to_remove) {
@@ -232,7 +209,7 @@ BlockPtr BlockFuse::replace_chain(
     for (auto iter = begin; iter != end; ++iter) {
         BlockPtr block_to_replace = *iter;
         std::vector<BlockId> block_to_replace_children;
-        get_children(block_to_replace, &block_to_replace_children);
+        block_util::get_children(block_to_replace, &block_to_replace_children);
 
         // children_to_remove_helper contains the id of either the last
         // block that we replaced or of the directory/link
@@ -308,7 +285,7 @@ int BlockFuse::rmdir(const char *path) {
 
 void BlockFuse::recursive_free_children_blocks(BlockPtr block) {
     std::vector<BlockId> children;
-    if (!get_children(block, &children)) {
+    if (!block_util::get_children(block, &children)) {
         // This block cannot have children. Skip it.
         return;
     }

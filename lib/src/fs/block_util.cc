@@ -76,6 +76,24 @@ bool find_path(
     return false;
 }
 
+bool get_children(BlockPtr block, std::vector<BlockId>* children) {
+    std::shared_ptr<const LinkBlockData> link_data =
+        block_util::try_cast_link(block);
+    if (link_data) {
+        *children = link_data->get_children();
+        return true;
+    }
+
+    std::shared_ptr<const DirFileBlockData> dir_file =
+        block_util::try_cast_dir_file(block);
+    if (dir_file) {
+        *children = dir_file->get_children();
+        return true;
+    }
+    return false;
+}
+
+
 }  // namespace block_util
 
 }  // namespace pingfs

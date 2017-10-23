@@ -31,6 +31,14 @@ bool find_path(
     const Block& target_block,
     std::vector<BlockPtr>* block_path);
 
+/**
+ * Returns true if {@code block} can be cast to a link block or dir
+ * file block, and false otherwise. If {@code block} can be cast to
+ * a link/dir file block, then populate {@code children} with that
+ * block's children.
+ */
+bool get_children(BlockPtr block, std::vector<BlockId>* children);
+
 
 }  // namespace block_util
 
