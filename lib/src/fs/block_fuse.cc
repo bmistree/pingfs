@@ -1,6 +1,7 @@
 #include <pingfs/block/block_data/dir_file_block_data.hpp>
 #include <pingfs/block/block_data/link_block_data.hpp>
 #include <pingfs/fs/block_fuse.hpp>
+#include <pingfs/fs/block_util.hpp>
 #include <pingfs/fs/fs_util.hpp>
 #include <pingfs/fs/fuse_wrapper.hpp>
 
@@ -30,69 +31,6 @@ static int set_file_exists() {
 static int set_error_because_dir() {
     errno = EISDIR;
     return -EISDIR;
-}
-
-static std::shared_ptr<const DirFileBlockData> try_cast_dir_file(
-    BlockPtr block_ptr) {
-    return std::dynamic_pointer_cast<const DirFileBlockData>(
-        block_ptr->get_data());
-}
-
-static std::shared_ptr<const LinkBlockData> try_cast_link(
-    BlockPtr block_ptr) {
-    return std::dynamic_pointer_cast<const LinkBlockData>(
-        block_ptr->get_data());
-}
-
-static std::shared_ptr<const FileContentsBlockData> try_cast_contents(
-    BlockPtr block_ptr) {
-    return std::dynamic_pointer_cast<const FileContentsBlockData>(
-        block_ptr->get_data());
-}
-
-static bool find_path(
-    const std::unordered_map<BlockId, BlockPtr>& retrieved_blocks,
-    BlockPtr from_block,
-    const Block& target_block,
-    std::vector<BlockPtr>* block_path) {
-
-    if (from_block->get_id() == target_block.get_id()) {
-        // Found target block
-        return true;
-    }
-
-    // Expand dirs and links when looking for blocks.
-    std::shared_ptr<const LinkBlockData> link = try_cast_link(from_block);
-    std::shared_ptr<const DirFileBlockData> dir_file =
-        try_cast_dir_file(from_block);
-    if (!link && !dir_file) {
-        // This is a terminal block that is not the block that we are looking
-        // for. Therefore, we did not find a path to the target block,
-        // and should just exit.
-        return false;
-    }
-
-    const std::vector<BlockId>& children =
-        link ? link->get_children() : dir_file->get_children();
-
-    for (auto child_id_iter = children.cbegin();
-         child_id_iter != children.cend(); ++child_id_iter) {
-        auto entry = retrieved_blocks.find(*child_id_iter);
-        if (entry == retrieved_blocks.end()) {
-            // Child does not appear in retrieved_blocks; this
-            // means that we did not need to expand this block
-            // to find a path, and that we should therefore not
-            // investigate the path further.
-            continue;
-        }
-        const BlockPtr& child = entry->second;
-        if (find_path(retrieved_blocks, child, target_block, block_path)) {
-            block_path->push_back(child);
-            return true;
-        }
-    }
-    // we did not find a path to the target block
-    return false;
 }
 
 /**
@@ -142,7 +80,7 @@ int BlockFuse::getattr(const char* path, struct stat* stbuf) {
         return set_no_such_file_or_dir();
     }
     std::shared_ptr<const DirFileBlockData> resolved_data =
-        try_cast_dir_file(resolved);
+        block_util::try_cast_dir_file(resolved);
     // resolve_inode should only return dir file block data.
     assert(resolved_data);
 
@@ -185,7 +123,7 @@ bool BlockFuse::mkdir_valid(const char* path,
     // Check that the parent is a directory
     BlockPtr parent_dir = (*blocks)[blocks->size() - 1];
     std::shared_ptr<const DirFileBlockData> parent =
-        try_cast_dir_file(parent_dir);
+        block_util::try_cast_dir_file(parent_dir);
     if (!parent) {
         // The parent isn't a directory. Can't call mkdir on a file.
         return false;
@@ -246,14 +184,14 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
  */
 static bool get_children(BlockPtr block, std::vector<BlockId>* children) {
     std::shared_ptr<const LinkBlockData> link_data =
-        try_cast_link(block);
+        block_util::try_cast_link(block);
     if (link_data) {
         *children = link_data->get_children();
         return true;
     }
 
     std::shared_ptr<const DirFileBlockData> dir_file =
-        try_cast_dir_file(block);
+        block_util::try_cast_dir_file(block);
     if (dir_file) {
         *children = dir_file->get_children();
         return true;
@@ -339,7 +277,7 @@ int BlockFuse::rmdir(const char *path) {
     bool found_last_dir_file_index = false;
     for (std::size_t i = blocks.size() - 2; i >= 0; --i) {
         std::shared_ptr<const LinkBlockData> link_data =
-            try_cast_link(blocks[i]);
+            block_util::try_cast_link(blocks[i]);
         if (!link_data) {
             last_dir_file_index = i;
             found_last_dir_file_index = true;
@@ -397,14 +335,14 @@ BlockPtr BlockFuse::replace_block_with_diff_children(
     BlockPtr block_to_replace, const std::vector<BlockId>& new_children) {
 
     std::shared_ptr<const LinkBlockData> link_data =
-        try_cast_link(block_to_replace);
+        block_util::try_cast_link(block_to_replace);
     if (link_data) {
         return block_manager_->create_block(
             std::make_shared<const LinkBlockData>(new_children));
     }
 
     std::shared_ptr<const DirFileBlockData> dir_file =
-        try_cast_dir_file(block_to_replace);
+        block_util::try_cast_dir_file(block_to_replace);
     if (dir_file) {
         return block_manager_->create_block(
             std::make_shared<const DirFileBlockData>(*dir_file, new_children));
@@ -460,7 +398,7 @@ static BlockPtr get_path_part_helper(std::vector<BlockId>* blocks_to_check,
         (*retrieved_blocks)[(*iter)->get_id()] = *iter;
 
         std::shared_ptr<const DirFileBlockData> dir_file_data =
-            try_cast_dir_file(*iter);
+            block_util::try_cast_dir_file(*iter);
         if (dir_file_data) {
             if (dir_file_data->get_name() == target_name) {
                 // exit loop and now search for path to block
@@ -468,7 +406,7 @@ static BlockPtr get_path_part_helper(std::vector<BlockId>* blocks_to_check,
             }
         }
         std::shared_ptr<const LinkBlockData> link_data =
-            try_cast_link(*iter);
+            block_util::try_cast_link(*iter);
         if (link_data) {
             // We must check all children of a link to see
             // if they or their children are the target block.
@@ -504,11 +442,11 @@ void BlockFuse::get_path_part(
         return;
     }
 
-    assert(try_cast_dir_file(from_block));
+    assert(block_util::try_cast_dir_file(from_block));
     // Those blocks that either could be the target or the ancestor of the
     // target (as a link).
     std::vector<BlockId> blocks_to_check =
-        try_cast_dir_file(from_block)->get_children();
+        block_util::try_cast_dir_file(from_block)->get_children();
     // All link blocks that we encountered while searching for target.
     std::unordered_map<BlockId, BlockPtr> retrieved_blocks;
     // This gets set when we encounter the target in the loop below.
@@ -527,7 +465,8 @@ void BlockFuse::get_path_part(
     if (target_inode) {
         // The target block was reachable. Reconstruct the path to
         // it by calling find_path.
-        find_path(retrieved_blocks, from_block, *target_inode, block_path);
+        block_util::find_path(
+            retrieved_blocks, from_block, *target_inode, block_path);
     }
 }
 
@@ -545,7 +484,7 @@ void BlockFuse::get_dir_files_from_dir(
         for (auto iter = resp->get_blocks().cbegin();
              iter !=resp->get_blocks().cend(); ++iter) {
             std::shared_ptr<const DirFileBlockData> child =
-                try_cast_dir_file(*iter);
+                block_util::try_cast_dir_file(*iter);
             if (child) {
                 // If it's a dir file block, do not trace any further.
                 children->push_back(child);
@@ -553,7 +492,7 @@ void BlockFuse::get_dir_files_from_dir(
             }
 
             std::shared_ptr<const LinkBlockData> link_data =
-                try_cast_link(*iter);
+                block_util::try_cast_link(*iter);
             if (link_data) {
                 // Keep tracing through links.
                 blocks_to_trace.insert(blocks_to_trace.end(),
@@ -576,7 +515,7 @@ int BlockFuse::readdir(const char *path, void *buf,
     }
 
     std::shared_ptr<const DirFileBlockData> dir_file =
-        try_cast_dir_file(blocks.back());
+        block_util::try_cast_dir_file(blocks.back());
     if (!dir_file) {
         // Searched for path is not a directory.
         return 1;
@@ -637,7 +576,7 @@ int BlockFuse::read(const char *path, char *buffer, size_t size,
     }
 
     std::shared_ptr<const DirFileBlockData> dir_file =
-        try_cast_dir_file(blocks.back());
+        block_util::try_cast_dir_file(blocks.back());
 
     if (!dir_file) {
         // Wrong type of block data
@@ -684,14 +623,14 @@ static void get_contents_helper(
     for (auto iter = response->get_blocks().cbegin();
          iter != response->get_blocks().cend(); ++iter) {
         std::shared_ptr<const FileContentsBlockData> contents =
-            try_cast_contents(*iter);
+            block_util::try_cast_contents(*iter);
         if (contents) {
             file_blocks->push_back(contents);
             continue;
         }
 
         std::shared_ptr<const LinkBlockData> link_data =
-            try_cast_link(*iter);
+            block_util::try_cast_link(*iter);
         if (link_data) {
             get_contents_helper(
                 link_data->get_children(), file_blocks, block_manager);
@@ -780,7 +719,7 @@ int BlockFuse::write(const char *path, const char *buffer,
     }
     BlockPtr file_inode = blocks.back();
     std::shared_ptr<const DirFileBlockData> resolved_data =
-        try_cast_dir_file(file_inode);
+        block_util::try_cast_dir_file(file_inode);
 
     if (resolved_data->is_dir()) {
         return set_error_because_dir();
@@ -902,7 +841,7 @@ void BlockFuse::write_file_starting_at_node(
             &ids_to_add);
     }
     std::shared_ptr<const DirFileBlockData> file_inode =
-        try_cast_dir_file(blocks->back());
+        block_util::try_cast_dir_file(blocks->back());
 
 
     // Steps 3 and 4: replace existing blocks
