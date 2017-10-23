@@ -25,6 +25,15 @@ std::shared_ptr<const LinkBlockData> try_cast_link(
 std::shared_ptr<const FileContentsBlockData> try_cast_contents(
     BlockPtr block_ptr);
 
+/**
+ * Returns true if a there is a path from {@code from_block} to
+ * {@code target_block}. Also populates {@code block_path} with
+ * that path.
+ *
+ * @param retrieved_blocks Contains all blocks that we may
+ * need when trying to build a path from {@code from_block} to
+ * {@code target_block}.
+ */
 bool find_path(
     const std::unordered_map<BlockId, BlockPtr>& retrieved_blocks,
     BlockPtr from_block,
