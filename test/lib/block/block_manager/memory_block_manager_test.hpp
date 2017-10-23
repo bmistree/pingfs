@@ -6,6 +6,7 @@
 #include <pingfs/block/block_response.hpp>
 #include <pingfs/block/block_manager/memory_block_manager.hpp>
 #include <pingfs/block/block_data/file_contents_block_data.hpp>
+#include <pingfs/block/block_manager/id_supplier/counter_supplier.hpp>
 
 #include <memory>
 #include <string>
@@ -18,7 +19,8 @@
  * Ensures that created blocks maintain data.
  */
 TEST(MemoryBlockManager, CreateBlock) {
-    pingfs::MemoryBlockManager manager;
+    pingfs::MemoryBlockManager manager(
+        std::make_shared<pingfs::CounterSupplier>());
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
         std::make_shared<const pingfs::FileContentsBlockData>("testing");
     std::shared_ptr<const pingfs::Block> block =
@@ -27,12 +29,14 @@ TEST(MemoryBlockManager, CreateBlock) {
 }
 
 TEST(MemoryBlockManager, NumBlocksEmpty) {
-    pingfs::MemoryBlockManager manager;
+    pingfs::MemoryBlockManager manager(
+        std::make_shared<pingfs::CounterSupplier>());
     ASSERT_EQ(manager.num_blocks(), 0u);
 }
 
 TEST(MemoryBlockManager, NumBlocksNonEmpty) {
-    pingfs::MemoryBlockManager manager;
+    pingfs::MemoryBlockManager manager(
+        std::make_shared<pingfs::CounterSupplier>());
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
         std::make_shared<const pingfs::FileContentsBlockData>("testing");
     manager.create_block(test_data);
@@ -42,7 +46,8 @@ TEST(MemoryBlockManager, NumBlocksNonEmpty) {
 }
 
 TEST(MemoryBlockManager, NumBlocksAfterDelete) {
-    pingfs::MemoryBlockManager manager;
+    pingfs::MemoryBlockManager manager(
+        std::make_shared<pingfs::CounterSupplier>());
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
         std::make_shared<const pingfs::FileContentsBlockData>("testing");
 
@@ -58,7 +63,8 @@ TEST(MemoryBlockManager, NumBlocksAfterDelete) {
  * Ensures that we can retrieve a block after creating it.
  */
 TEST(MemoryBlockManager, RetrieveBlock) {
-    pingfs::MemoryBlockManager manager;
+    pingfs::MemoryBlockManager manager(
+        std::make_shared<pingfs::CounterSupplier>());
 
     std::shared_ptr<const pingfs::FileContentsBlockData> test_data =
         std::make_shared<const pingfs::FileContentsBlockData>("testing");

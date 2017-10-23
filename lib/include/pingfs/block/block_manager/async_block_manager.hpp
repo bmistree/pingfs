@@ -21,7 +21,7 @@ class AsyncBlockManager :
         public BlockManager,
         public Subscriber<std::shared_ptr<const Block>> {
  public:
-    AsyncBlockManager();
+    explicit AsyncBlockManager(std::shared_ptr<IdSupplier> id_supplier);
     virtual ~AsyncBlockManager();
 
  public:

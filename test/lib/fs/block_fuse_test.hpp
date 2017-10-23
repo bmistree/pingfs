@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include <pingfs/fs/block_fuse.hpp>
+#include <pingfs/block/block_manager/id_supplier/counter_supplier.hpp>
 
 #include <cassert>
 #include <memory>
@@ -28,7 +29,8 @@ static void verify_path_dne(int return_code) {
 
 static void verify_mkdir_fails(const std::string& dir_to_make) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
 
     pingfs::BlockFuse block_fuse(block_manager, 55);
     ASSERT_NE(block_fuse.mkdir(dir_to_make.c_str(),
@@ -37,7 +39,8 @@ static void verify_mkdir_fails(const std::string& dir_to_make) {
 
 TEST(BlockFuse, GetAttrRoot) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
 
     pingfs::BlockFuse bf(block_manager, 55);
     struct stat stat;
@@ -53,7 +56,8 @@ TEST(BlockFuse, GetAttrRoot) {
 
 TEST(BlockFuse, GetAttrDne) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
 
     pingfs::BlockFuse bf(block_manager, 55);
     struct stat stat;
@@ -71,7 +75,8 @@ TEST(BlockFuse, MkdirFailsPathAlreadyExists) {
 
 TEST(BlockFuse, MkdirSucceeds) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
 
     pingfs::BlockFuse block_fuse(block_manager, 55);
 
@@ -92,7 +97,8 @@ TEST(BlockFuse, MkdirSucceeds) {
 
 TEST(BlockFuse, MkdirNestedSucceeds) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
 
     pingfs::BlockFuse block_fuse(block_manager, 55);
     ASSERT_EQ(block_fuse.mkdir("/a", gen_test_mode().to_mode_t()), 0);
@@ -123,7 +129,8 @@ TEST(BlockFuse, MkdirNestedSucceeds) {
  */
 TEST(BlockFuse, MkdirRmDirIncludingChildren) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
 
     pingfs::BlockFuse block_fuse(block_manager, 55);
     ASSERT_EQ(block_fuse.mkdir("/a", gen_test_mode().to_mode_t()), 0);
@@ -150,7 +157,8 @@ TEST(BlockFuse, MkdirRmDirIncludingChildren) {
 
 TEST(BlockFuse, RmChildDir) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
 
     pingfs::BlockFuse block_fuse(block_manager, 55);
     ASSERT_EQ(block_fuse.mkdir("/a", gen_test_mode().to_mode_t()), 0);
@@ -175,21 +183,24 @@ TEST(BlockFuse, RmChildDir) {
 
 TEST(BlockFuse, FailRmRoot) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
     pingfs::BlockFuse block_fuse(block_manager, 55);
     ASSERT_NE(block_fuse.rmdir("/"), 0);
 }
 
 TEST(BlockFuse, FailRmNonExistent) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
     pingfs::BlockFuse block_fuse(block_manager, 55);
     ASSERT_NE(block_fuse.rmdir("/a/b"), 0);
 }
 
 TEST(BlockFuse, ReadPathDoesNotExist) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
     pingfs::BlockFuse block_fuse(block_manager, 55);
     char buffer;
     struct fuse_file_info info;
@@ -201,7 +212,8 @@ TEST(BlockFuse, ReadPathDoesNotExist) {
 
 TEST(BlockFuse, ReadDirFails) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
     pingfs::BlockFuse block_fuse(block_manager, 55);
     char buffer;
     struct fuse_file_info info;
@@ -214,7 +226,8 @@ TEST(BlockFuse, ReadDirFails) {
 
 TEST(BlockFuse, WriteFailsDne) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
     pingfs::BlockFuse block_fuse(block_manager, 55);
     const char* test_buffer = "nothing";
     struct fuse_file_info info;
@@ -270,7 +283,8 @@ static void create_file(
     const std::string& filename,
     std::shared_ptr<pingfs::BlockFuse>* block_fuse) {
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
-        std::make_shared<pingfs::MemoryBlockManager>();
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
     *block_fuse =
         std::make_shared<pingfs::BlockFuse>(
             pingfs::BlockFuse(block_manager, 55));

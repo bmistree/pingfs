@@ -6,6 +6,7 @@
 #include <pingfs/block/block_response.hpp>
 #include <pingfs/block/block_manager/async_block_manager.hpp>
 #include <pingfs/block/block_data/file_contents_block_data.hpp>
+#include <pingfs/block/block_manager/id_supplier/counter_supplier.hpp>
 
 #include <chrono>
 #include <memory>
@@ -19,7 +20,8 @@
 class TestAsyncBlockManager : public pingfs::AsyncBlockManager {
  public:
     TestAsyncBlockManager()
-      : pingfs::AsyncBlockManager(),
+     : pingfs::AsyncBlockManager(
+         std::make_shared<pingfs::CounterSupplier>()),
         next_block_id_(0) {
     }
 

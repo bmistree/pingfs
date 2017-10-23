@@ -3,9 +3,11 @@
 namespace pingfs {
 
 PingBlockManager::PingBlockManager(
+    std::shared_ptr<IdSupplier> id_supplier,
     boost::asio::io_service* io_service,
     const std::string& remote_endpt)
-  : ping_(io_service),
+  : BlockManager(id_supplier),
+    ping_(io_service),
     endpoint_(ping_.resolve(remote_endpt)) {
 }
 

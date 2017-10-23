@@ -2,8 +2,10 @@
 
 namespace pingfs {
 
-AsyncBlockManager::AsyncBlockManager()
-  : map_mutex_(),
+AsyncBlockManager::AsyncBlockManager(
+    std::shared_ptr<IdSupplier> id_supplier)
+  : BlockManager(id_supplier),
+    map_mutex_(),
     waiting_() {
 }
 

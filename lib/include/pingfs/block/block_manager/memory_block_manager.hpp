@@ -17,7 +17,7 @@ namespace pingfs {
 
 class MemoryBlockManager : public BlockManager {
  public:
-    MemoryBlockManager();
+    explicit MemoryBlockManager(std::shared_ptr<IdSupplier> id_supplier);
 
     std::shared_ptr<const Block> create_block(
         std::shared_ptr<const BlockData> data) override;
@@ -30,11 +30,6 @@ class MemoryBlockManager : public BlockManager {
     ~MemoryBlockManager() override;
 
  private:
-    BlockId get_next_block_id();
-
- private:
-    BlockId next_block_id_;
-    boost::mutex next_id_mutex_;
     std::unordered_map<BlockId, std::shared_ptr<const Block>> map_;
     boost::mutex map_mutex_;
 };

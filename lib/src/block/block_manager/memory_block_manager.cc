@@ -5,9 +5,9 @@
 
 namespace pingfs {
 
-MemoryBlockManager::MemoryBlockManager()
-  : next_block_id_(1),
-    next_id_mutex_(),
+MemoryBlockManager::MemoryBlockManager(
+    std::shared_ptr<IdSupplier> id_supplier)
+  : BlockManager(id_supplier),
     map_(),
     map_mutex_() {
 }
@@ -15,15 +15,10 @@ MemoryBlockManager::MemoryBlockManager()
 MemoryBlockManager::~MemoryBlockManager() {
 }
 
-BlockId MemoryBlockManager::get_next_block_id() {
-    boost::mutex::scoped_lock locker(next_id_mutex_);
-    return next_block_id_++;
-}
-
 std::shared_ptr<const Block> MemoryBlockManager::create_block(
     std::shared_ptr<const BlockData> data) {
     std::shared_ptr<const Block> block =
-        std::make_shared<const Block>(get_next_block_id(), data);
+        std::make_shared<const Block>(next_id(), data);
     {
         boost::mutex::scoped_lock map_lock(map_mutex_);
         map_[block->get_id()] = block;
@@ -33,6 +28,7 @@ std::shared_ptr<const Block> MemoryBlockManager::create_block(
 
 void MemoryBlockManager::free_block(BlockId block_id) {
     boost::mutex::scoped_lock map_lock(map_mutex_);
+    free_id(block_id);
     map_.erase(block_id);
 }
 
@@ -48,7 +44,7 @@ std::shared_ptr<const BlockResponse> MemoryBlockManager::get_blocks(
 }
 
 std::size_t MemoryBlockManager::num_blocks() {
-    boost::mutex::scoped_lock locker(next_id_mutex_);
+    boost::mutex::scoped_lock locker(map_mutex_);
     return map_.size();
 }
 

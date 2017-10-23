@@ -27,7 +27,9 @@ class PingBlockManager : public BlockManager {
      * @param remote_endpt A hostname to bounce messages
      * off of.
      */
-    PingBlockManager(boost::asio::io_service* io_service,
+    PingBlockManager(
+        std::shared_ptr<IdSupplier> id_supplier,
+        boost::asio::io_service* io_service,
         const std::string& remote_endpt);
 
     ~PingBlockManager() override;
