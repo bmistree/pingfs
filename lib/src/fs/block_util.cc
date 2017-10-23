@@ -136,20 +136,6 @@ static void get_file_contents(
     }
 }
 
-/**
- * Return all FileContentsBlockData blocks for the file associated with
- * {@code file_data}. Note that {@code file_data} must be associated with
- * a file and not a directory. Also note that {@code file_blocks} will be
- * in the order that the block appears in the file.
- */
-static void get_file_contents(
-    std::shared_ptr<const DirFileBlockData> file_data,
-    std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks,
-    std::shared_ptr<BlockManager> block_manager) {
-    assert(!file_data->is_dir());
-    get_file_contents(
-        file_data->get_children(), file_blocks, block_manager);
-}
 
 void read_file_contents(std::string* result,
     std::shared_ptr<const DirFileBlockData> file_inode,
