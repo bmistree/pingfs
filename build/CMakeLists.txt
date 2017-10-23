@@ -35,6 +35,7 @@ file(GLOB LIB_BLOCK_SRC_FILES "${LIB_SRC_FOLDER}/block/*.cc")
 file(GLOB LIB_BLOCK_DATA_SRC_FILES "${LIB_SRC_FOLDER}/block/block_data/*.cc")
 file(GLOB LIB_BLOCK_MANAGER_SRC_FILES "${LIB_SRC_FOLDER}/block/block_manager/*.cc")
 file(GLOB LIB_PING_BLOCK_MANAGER_SRC_FILES "${LIB_SRC_FOLDER}/block/block_manager/ping/*.cc")
+file(GLOB LIB_ID_SUPPLIER_SRC_FILES "${LIB_SRC_FOLDER}/block/block_manager/id_supplier/*.cc")
 file(GLOB LIB_FS_SRC_FILES "${LIB_SRC_FOLDER}/fs/*.cc")
 
 add_library(
@@ -44,6 +45,7 @@ add_library(
   ${LIB_BLOCK_DATA_SRC_FILES}
   ${LIB_BLOCK_MANAGER_SRC_FILES}
   ${LIB_PING_BLOCK_MANAGER_SRC_FILES}
+  ${LIB_ID_SUPPLIER_SRC_FILES}
   ${LIB_FS_SRC_FILES})
 
 
