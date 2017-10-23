@@ -556,10 +556,8 @@ int BlockFuse::read(const char *path, char *buffer, size_t size,
     // FIXME: For now, constructing entire file in memory and then just
     // returning the relevant portion. Would be much more efficient to just find
     // the targeted portion of the file.
-    std::vector<std::shared_ptr<const FileContentsBlockData>> file_blocks;
-    block_util::get_file_contents(dir_file, &file_blocks, block_manager_);
     std::string contents;
-    block_util::file_blocks_to_contents(file_blocks, &contents);
+    block_util::read_file_contents(&contents, dir_file, block_manager_);
 
     // FIXME: skipping populating fuse_file_info struct
     if (static_cast<std::size_t>(offset) > contents.size()) {
