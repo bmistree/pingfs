@@ -269,6 +269,89 @@ void recursive_free_children_blocks(
     }
 }
 
+/**
+ * @param blocks_to_link_to Blocks that a new link layer
+ * should point to.
+ * @param new_layer Initially empty; this method populates
+ * this vector with link blocks to {@code blocks_to_link_to}.
+ */
+void add_link_layer(
+    const std::vector<BlockPtr>& blocks_to_link_to,
+    std::vector<BlockPtr>* new_layer,
+    std::size_t branching_factor,
+    std::shared_ptr<BlockManager> block_manager) {
+
+    std::size_t blocks_over_branching_factor =
+        static_cast<std::size_t>(
+            ceil(static_cast<double>(blocks_to_link_to.size()) /
+                static_cast<double>(branching_factor)));
+
+    for (std::size_t i = 0; i < blocks_over_branching_factor;
+         ++i) {
+        std::vector<BlockId> child_links;
+        for (std::size_t j = 0; j < branching_factor; ++j) {
+            std::size_t block_index = (i * branching_factor) + j;
+            if (block_index >= blocks_to_link_to.size()) {
+                break;
+            }
+
+            child_links.push_back(
+                blocks_to_link_to[block_index]->get_id());
+        }
+        new_layer->push_back(
+            block_manager->create_block(
+                std::make_shared<const LinkBlockData>(child_links)));
+    }
+}
+
+void replace_blocks_for_contents(
+    const std::vector<BlockPtr>* blocks,
+    const std::string& file_contents,
+    std::vector<BlockId>* ids_to_add,
+    std::size_t bytes_per_block,
+    std::size_t branching_factor,
+    std::shared_ptr<BlockManager> block_manager) {
+
+    assert(!blocks->empty());
+    assert(!file_contents.empty());
+    // Step 1: split file contents into leaf blocks
+    std::size_t num_leaves =
+        file_contents.size() / bytes_per_block;
+    if ((num_leaves * bytes_per_block) != file_contents.size()) {
+        ++num_leaves;
+    }
+    int depth = ceil(log(num_leaves) / log(branching_factor));
+
+    std::vector<std::shared_ptr<const FileContentsBlockData>> leaf_data;
+    for (std::size_t i = 0; i < num_leaves; ++i) {
+        std::size_t end =
+            std::max((i + 1) * bytes_per_block,
+                file_contents.size());
+        leaf_data.push_back(
+            std::make_shared<const FileContentsBlockData>(
+                file_contents.substr(i * bytes_per_block, end)));
+    }
+
+    // Step 2: build a tree of links to those leaf blocks
+    std::vector<BlockPtr> blocks_to_link_to;
+    for (auto iter = leaf_data.cbegin(); iter != leaf_data.cend(); ++iter) {
+        blocks_to_link_to.push_back(block_manager->create_block(*iter));
+    }
+
+    for (std::size_t i = 0; i < static_cast<std::size_t>(depth); ++i) {
+        std::vector<BlockPtr> links;
+        add_link_layer(blocks_to_link_to, &links, branching_factor,
+            block_manager);
+        blocks_to_link_to = links;
+    }
+
+    for (auto iter = blocks_to_link_to.cbegin();
+         iter != blocks_to_link_to.cend(); ++iter) {
+        ids_to_add->push_back((*iter)->get_id());
+    }
+}
+
+
 }  // namespace block_util
 
 }  // namespace pingfs

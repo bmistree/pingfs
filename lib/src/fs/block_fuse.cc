@@ -560,83 +560,6 @@ int BlockFuse::write(const char *path, const char *buffer,
     return size;
 }
 
-/**
- * @param blocks_to_link_to Blocks that a new link layer
- * should point to.
- * @param new_layer Initially empty; this method populates
- * this vector with link blocks to {@code blocks_to_link_to}.
- */
-static void add_link_layer(
-    const std::vector<BlockPtr>& blocks_to_link_to,
-    std::vector<BlockPtr>* new_layer, std::size_t branching_factor,
-    std::shared_ptr<BlockManager> block_manager) {
-
-    std::size_t blocks_over_branching_factor =
-        static_cast<std::size_t>(
-            ceil(static_cast<double>(blocks_to_link_to.size()) /
-                static_cast<double>(branching_factor)));
-
-    for (std::size_t i = 0; i < blocks_over_branching_factor;
-         ++i) {
-        std::vector<BlockId> child_links;
-        for (std::size_t j = 0; j < branching_factor; ++j) {
-            std::size_t block_index = (i * branching_factor) + j;
-            if (block_index >= blocks_to_link_to.size()) {
-                break;
-            }
-
-            child_links.push_back(
-                blocks_to_link_to[block_index]->get_id());
-        }
-        new_layer->push_back(
-            block_manager->create_block(
-                std::make_shared<const LinkBlockData>(child_links)));
-    }
-}
-
-void BlockFuse::replace_blocks_for_contents(
-    const std::vector<BlockPtr>* blocks,
-    const std::string& file_contents,
-    std::vector<BlockId>* ids_to_add) {
-
-    assert(!blocks->empty());
-    assert(!file_contents.empty());
-    // Step 1: split file contents into leaf blocks
-    std::size_t num_leaves = file_contents.size() / BYTES_PER_BLOCK;
-    if ((num_leaves * BYTES_PER_BLOCK) != file_contents.size()) {
-        ++num_leaves;
-    }
-    int depth = ceil(log(num_leaves) / log(BRANCHING_FACTOR));
-
-    std::vector<std::shared_ptr<const FileContentsBlockData>> leaf_data;
-    for (std::size_t i = 0; i < num_leaves; ++i) {
-        std::size_t end =
-            std::max((i + 1) * BYTES_PER_BLOCK,
-                file_contents.size());
-        leaf_data.push_back(
-            std::make_shared<const FileContentsBlockData>(
-                file_contents.substr(i * BYTES_PER_BLOCK, end)));
-    }
-
-    // Step 2: build a tree of links to those leaf blocks
-    std::vector<BlockPtr> blocks_to_link_to;
-    for (auto iter = leaf_data.cbegin(); iter != leaf_data.cend(); ++iter) {
-        blocks_to_link_to.push_back(block_manager_->create_block(*iter));
-    }
-
-    for (std::size_t i = 0; i < static_cast<std::size_t>(depth); ++i) {
-        std::vector<BlockPtr> links;
-        add_link_layer(blocks_to_link_to, &links, BRANCHING_FACTOR,
-            block_manager_);
-        blocks_to_link_to = links;
-    }
-
-    for (auto iter = blocks_to_link_to.cbegin();
-         iter != blocks_to_link_to.cend(); ++iter) {
-        ids_to_add->push_back((*iter)->get_id());
-    }
-}
-
 
 void BlockFuse::write_file_starting_at_node(
     std::vector<BlockPtr>* blocks,
@@ -656,14 +579,16 @@ void BlockFuse::write_file_starting_at_node(
     std::vector<BlockId> ids_to_add;
 
     if (!file_contents.empty()) {
-        replace_blocks_for_contents(
+        block_util::replace_blocks_for_contents(
             blocks,
             file_contents,
-            &ids_to_add);
+            &ids_to_add,
+            BYTES_PER_BLOCK,
+            BRANCHING_FACTOR,
+            block_manager_);
     }
     std::shared_ptr<const DirFileBlockData> file_inode =
         block_util::try_cast_dir_file(blocks->back());
-
 
     // Steps 3 and 4: replace existing blocks
 
@@ -691,7 +616,6 @@ void BlockFuse::write_file_starting_at_node(
             block_manager_);
 }
 
-
 int BlockFuse::create(const char *path, mode_t mode,
     struct fuse_file_info *fi) {
     std::vector<BlockPtr> blocks;
@@ -713,6 +637,5 @@ int BlockFuse::create(const char *path, mode_t mode,
     }
     return 0;
 }
-
 
 }  // namespace pingfs

@@ -88,6 +88,19 @@ void recursive_free_children_blocks(
     BlockPtr block,
     std::shared_ptr<BlockManager> block_manager);
 
+    /**
+     * Add blocks for {@code file_contents} to the end of {@code blocks}.
+     * Update {@code ids_to_add} with the ids of new blocks to add.
+     * Note that {@code file_contents} must be non-empty.
+     */
+void replace_blocks_for_contents(
+    const std::vector<BlockPtr>* blocks,
+    const std::string& file_contents,
+    std::vector<BlockId>* ids_to_add,
+    std::size_t bytes_per_block,
+    std::size_t branching_factor,
+    std::shared_ptr<BlockManager> block_manager);
+
 }  // namespace block_util
 
 }  // namespace pingfs
