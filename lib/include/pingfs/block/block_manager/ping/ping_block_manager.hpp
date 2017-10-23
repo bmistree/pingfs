@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
-#include <pingfs/block/block_manager/block_manager.hpp>
+#include <pingfs/block/block_manager/async_block_manager.hpp>
 #include <pingfs/block/block_request.hpp>
 #include <pingfs/block/block_response.hpp>
 #include <pingfs/block/block_data/block_data.hpp>
@@ -16,7 +16,7 @@
 
 namespace pingfs {
 
-class PingBlockManager : public BlockManager {
+class PingBlockManager : public AsyncBlockManager {
  private:
     using BlockPtr = std::shared_ptr<const Block>;
     using DataPtr = std::shared_ptr<const BlockData>;
@@ -36,8 +36,6 @@ class PingBlockManager : public BlockManager {
 
     BlockPtr create_block(DataPtr data) override;
     void free_block(BlockId block_id) override;
-    ResponsePtr get_blocks(
-        const BlockRequest& block_request) override;
 
  private:
     Ping ping_;

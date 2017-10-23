@@ -6,7 +6,7 @@ PingBlockManager::PingBlockManager(
     std::shared_ptr<IdSupplier> id_supplier,
     boost::asio::io_service* io_service,
     const std::string& remote_endpt)
-  : BlockManager(id_supplier),
+  : AsyncBlockManager(id_supplier),
     ping_(io_service),
     endpoint_(ping_.resolve(remote_endpt)) {
 }
@@ -19,11 +19,6 @@ PingBlockManager::BlockPtr PingBlockManager::create_block(DataPtr data) {
 }
 
 void PingBlockManager::free_block(BlockId block_id) {
-    throw "Unsupported operation";
-}
-
-PingBlockManager::ResponsePtr PingBlockManager::get_blocks(
-    const BlockRequest& block_request) {
     throw "Unsupported operation";
 }
 
