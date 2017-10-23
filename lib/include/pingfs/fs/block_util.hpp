@@ -67,6 +67,24 @@ void read_file_contents(std::string* result,
     std::shared_ptr<const DirFileBlockData> file_inode,
     std::shared_ptr<BlockManager> block_manager);
 
+/**
+ * Walks over a chain of connected blocks starting at {@code begin}
+ * and ending at {@code end}, creating a parallel chain of blocks,
+ * replacing children along the way.
+ *
+ * @param children_to_remove Remove these ids from the children of
+ * the begin iterator.
+ * @param children_to_add Add these ids to the children of the begin
+ * iterator.
+ */
+BlockPtr replace_chain(
+    std::vector<BlockPtr>::reverse_iterator begin,
+    std::vector<BlockPtr>::reverse_iterator end,
+    const std::vector<BlockId>& children_to_remove,
+    const std::vector<BlockId>& children_to_add,
+    std::shared_ptr<BlockManager> block_manager);
+
+
 }  // namespace block_util
 
 }  // namespace pingfs

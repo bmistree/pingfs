@@ -4,6 +4,7 @@
 #include <pingfs/block/block_data/link_block_data.hpp>
 #include <pingfs/fs/block_util.hpp>
 
+#include <algorithm>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -163,6 +164,97 @@ void read_file_contents(std::string* result,
         *result += *((*iter)->get_data());
     }
 }
+
+static void remove_ids(
+    std::vector<BlockId>* to_remove_from,
+    const std::vector<BlockId>& to_remove) {
+
+    for (auto to_remove_iter = to_remove.cbegin();
+         to_remove_iter != to_remove.cend();
+         ++to_remove_iter) {
+        auto remove_iter = std::find(
+            to_remove_from->begin(),
+            to_remove_from->end(),
+            *to_remove_iter);
+        assert(remove_iter != to_remove_from->end());
+        to_remove_from->erase(remove_iter);
+    }
+}
+
+/**
+ * Returns a created block that is identical to {@code block_to_replace},
+ * except its children are {@code new_children}.
+ *
+ * @param block_to_replace Must be a block containing either
+ * DirFileBlockData or LinkBlockData.
+ */
+static BlockPtr replace_block_with_diff_children(
+    BlockPtr block_to_replace,
+    const std::vector<BlockId>& new_children,
+    std::shared_ptr<BlockManager> block_manager) {
+
+    std::shared_ptr<const LinkBlockData> link_data =
+        try_cast_link(block_to_replace);
+    if (link_data) {
+        return block_manager->create_block(
+            std::make_shared<const LinkBlockData>(new_children));
+    }
+
+    std::shared_ptr<const DirFileBlockData> dir_file =
+        try_cast_dir_file(block_to_replace);
+    if (dir_file) {
+        return block_manager->create_block(
+            std::make_shared<const DirFileBlockData>(*dir_file, new_children));
+    }
+
+    throw "Unexpected block type";
+}
+
+
+BlockPtr replace_chain(
+    std::vector<BlockPtr>::reverse_iterator begin,
+    std::vector<BlockPtr>::reverse_iterator end,
+    const std::vector<BlockId>& children_to_remove,
+    const std::vector<BlockId>& children_to_add,
+    std::shared_ptr<BlockManager> block_manager) {
+    BlockPtr last_replaced_block;
+
+    // child_id_to_remove only indicates the first
+    // id to remove. Use this helper to replace the
+    // pointer if nullptr was passed in.
+    std::vector<BlockId> children_to_remove_helper =
+        children_to_remove;
+
+    for (auto iter = begin; iter != end; ++iter) {
+        BlockPtr block_to_replace = *iter;
+        std::vector<BlockId> block_to_replace_children;
+        block_util::get_children(block_to_replace, &block_to_replace_children);
+
+        // children_to_remove_helper contains the id of either the last
+        // block that we replaced or of the directory/link
+        // that we're removing. Erase it.
+        remove_ids(&block_to_replace_children, children_to_remove_helper);
+
+        children_to_remove_helper = {block_to_replace->get_id()};
+        if (last_replaced_block) {
+            // Add the id of the last replaced block
+            block_to_replace_children.push_back(
+                last_replaced_block->get_id());
+        } else {
+            // This is the first block that we are replacing;
+            // add the requested passed-in blocks to it.
+            block_to_replace_children.insert(
+                block_to_replace_children.end(),
+                children_to_add.begin(),
+                children_to_add.end());
+        }
+        // FIXME: Set access/changed time on each directory.
+        last_replaced_block = replace_block_with_diff_children(
+            block_to_replace, block_to_replace_children, block_manager);
+    }
+    return last_replaced_block;
+}
+
 
 }  // namespace block_util
 

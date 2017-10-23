@@ -80,33 +80,7 @@ class BlockFuse : public FuseWrapper {
     bool mkdir_valid(const char* path,
         std::vector<BlockPtr>* blocks, std::string* dir_to_make);
 
-    /**
-     * Returns a created block that is identical to {@code block_to_replace},
-     * except its children are {@code new_children}.
-     *
-     * @param block_to_replace Must be a block containing either
-     * DirFileBlockData or LinkBlockData.
-     */
-    BlockPtr replace_block_with_diff_children(
-        BlockPtr block_to_replace, const std::vector<BlockId>& new_children);
-
     void recursive_free_children_blocks(BlockPtr block);
-
-    /**
-     * Walks over a chain of connected blocks starting at {@code begin}
-     * and ending at {@code end}, creating a parallel chain of blocks,
-     * replacing children along the way.
-     *
-     * @param children_to_remove Remove these ids from the children of
-     * the begin iterator.
-     * @param children_to_add Add these ids to the children of the begin
-     * iterator.
-     */
-    BlockPtr replace_chain(
-        std::vector<BlockPtr>::reverse_iterator begin,
-        std::vector<BlockPtr>::reverse_iterator end,
-        const std::vector<BlockId>& children_to_remove,
-        const std::vector<BlockId>& children_to_add);
 
     /**
      * Populates {@code children} with the immediate files and dirs of {@code

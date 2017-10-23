@@ -163,8 +163,8 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
     BlockPtr new_dir_block = block_manager_->create_block(new_dir_data_block);
     BlockId child_id_to_add = new_dir_block->get_id();
     BlockPtr last_block_replaced =
-        replace_chain(blocks.rbegin(), blocks.rend(), {},
-            {child_id_to_add});
+        block_util::replace_chain(blocks.rbegin(), blocks.rend(), {},
+            {child_id_to_add}, block_manager_);
 
     // FIXME: Add lock guard to switch out root block
     root_block_ = last_block_replaced;
@@ -176,65 +176,6 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
     return 0;
 }
 
-static void remove_ids(
-    std::vector<BlockId>* to_remove_from,
-    const std::vector<BlockId>& to_remove) {
-
-    for (auto to_remove_iter = to_remove.cbegin();
-         to_remove_iter != to_remove.cend();
-         ++to_remove_iter) {
-        auto remove_iter = std::find(
-            to_remove_from->begin(),
-            to_remove_from->end(),
-            *to_remove_iter);
-        assert(remove_iter != to_remove_from->end());
-        to_remove_from->erase(remove_iter);
-    }
-}
-
-
-BlockPtr BlockFuse::replace_chain(
-    std::vector<BlockPtr>::reverse_iterator begin,
-    std::vector<BlockPtr>::reverse_iterator end,
-    const std::vector<BlockId>& children_to_remove,
-    const std::vector<BlockId>& children_to_add) {
-    BlockPtr last_replaced_block;
-
-    // child_id_to_remove only indicates the first
-    // id to remove. Use this helper to replace the
-    // pointer if nullptr was passed in.
-    std::vector<BlockId> children_to_remove_helper =
-        children_to_remove;
-
-    for (auto iter = begin; iter != end; ++iter) {
-        BlockPtr block_to_replace = *iter;
-        std::vector<BlockId> block_to_replace_children;
-        block_util::get_children(block_to_replace, &block_to_replace_children);
-
-        // children_to_remove_helper contains the id of either the last
-        // block that we replaced or of the directory/link
-        // that we're removing. Erase it.
-        remove_ids(&block_to_replace_children, children_to_remove_helper);
-
-        children_to_remove_helper = {block_to_replace->get_id()};
-        if (last_replaced_block) {
-            // Add the id of the last replaced block
-            block_to_replace_children.push_back(
-                last_replaced_block->get_id());
-        } else {
-            // This is the first block that we are replacing;
-            // add the requested passed-in blocks to it.
-            block_to_replace_children.insert(
-                block_to_replace_children.end(),
-                children_to_add.begin(),
-                children_to_add.end());
-        }
-        // FIXME: Set access/changed time on each directory.
-        last_replaced_block = replace_block_with_diff_children(
-            block_to_replace, block_to_replace_children);
-    }
-    return last_replaced_block;
-}
 
 int BlockFuse::rmdir(const char *path) {
     std::vector<BlockPtr> blocks;
@@ -266,10 +207,10 @@ int BlockFuse::rmdir(const char *path) {
     BlockId child_id_to_remove = blocks[last_dir_file_index + 1]->get_id();
 
     // Iterate end to /, replacing children directories on the way.
-    BlockPtr last_replaced_block = replace_chain(
+    BlockPtr last_replaced_block = block_util::replace_chain(
         // Should correspond to the block in blocks[last_dir_file_index]
         blocks.rbegin() + (blocks.size() - last_dir_file_index - 1),
-        blocks.rend(), {child_id_to_remove}, {});
+        blocks.rend(), {child_id_to_remove}, {}, block_manager_);
 
     // Switch root block with last created block
     root_block_ = last_replaced_block;
@@ -308,25 +249,6 @@ void BlockFuse::recursive_free_children_blocks(BlockPtr block) {
     }
 }
 
-BlockPtr BlockFuse::replace_block_with_diff_children(
-    BlockPtr block_to_replace, const std::vector<BlockId>& new_children) {
-
-    std::shared_ptr<const LinkBlockData> link_data =
-        block_util::try_cast_link(block_to_replace);
-    if (link_data) {
-        return block_manager_->create_block(
-            std::make_shared<const LinkBlockData>(new_children));
-    }
-
-    std::shared_ptr<const DirFileBlockData> dir_file =
-        block_util::try_cast_dir_file(block_to_replace);
-    if (dir_file) {
-        return block_manager_->create_block(
-            std::make_shared<const DirFileBlockData>(*dir_file, new_children));
-    }
-
-    throw "Unexpected block type";
-}
 
 void BlockFuse::get_path(const char* path,
     std::vector<BlockPtr>* blocks) const {
@@ -618,8 +540,8 @@ bool BlockFuse::create_file_block(const char* path,
     BlockPtr new_block = block_manager_->create_block(new_file_data);
     // FIXME: add some concurrency checks here.
     root_block_ =
-        replace_chain(blocks->rbegin(), blocks->rend(),
-            {}, {new_block->get_id()});
+        block_util::replace_chain(blocks->rbegin(), blocks->rend(),
+            {}, {new_block->get_id()}, block_manager_);
     blocks->clear();
 
     // Get the updated path
@@ -787,8 +709,9 @@ void BlockFuse::write_file_starting_at_node(
 
     // FIXME: add concurrency protection
     root_block_ =
-        replace_chain(blocks->rbegin(), blocks->rend(),
-            file_inode->get_children(), ids_to_add);
+        block_util::replace_chain(blocks->rbegin(), blocks->rend(),
+            file_inode->get_children(), ids_to_add,
+            block_manager_);
 }
 
 
