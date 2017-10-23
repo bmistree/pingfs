@@ -79,14 +79,14 @@ bool find_path(
 
 bool get_children(BlockPtr block, std::vector<BlockId>* children) {
     std::shared_ptr<const LinkBlockData> link_data =
-        block_util::try_cast_link(block);
+        try_cast_link(block);
     if (link_data) {
         *children = link_data->get_children();
         return true;
     }
 
     std::shared_ptr<const DirFileBlockData> dir_file =
-        block_util::try_cast_dir_file(block);
+        try_cast_dir_file(block);
     if (dir_file) {
         *children = dir_file->get_children();
         return true;
@@ -121,14 +121,14 @@ static void get_file_contents(
     for (auto iter = response->get_blocks().cbegin();
          iter != response->get_blocks().cend(); ++iter) {
         std::shared_ptr<const FileContentsBlockData> contents =
-            block_util::try_cast_contents(*iter);
+            try_cast_contents(*iter);
         if (contents) {
             file_blocks->push_back(contents);
             continue;
         }
 
         std::shared_ptr<const LinkBlockData> link_data =
-            block_util::try_cast_link(*iter);
+            try_cast_link(*iter);
         if (link_data) {
             get_file_contents(
                 link_data->get_children(), file_blocks, block_manager);
@@ -142,7 +142,7 @@ void read_file_contents(std::string* result,
     std::shared_ptr<BlockManager> block_manager) {
     assert(!file_inode->is_dir());
     std::vector<std::shared_ptr<const FileContentsBlockData>> file_blocks;
-    block_util::get_file_contents(
+    get_file_contents(
         file_inode->get_children(), &file_blocks, block_manager);
 
     for (auto iter = file_blocks.cbegin(); iter != file_blocks.cend();
@@ -214,7 +214,7 @@ BlockPtr replace_chain(
     for (auto iter = begin; iter != end; ++iter) {
         BlockPtr block_to_replace = *iter;
         std::vector<BlockId> block_to_replace_children;
-        block_util::get_children(block_to_replace, &block_to_replace_children);
+        get_children(block_to_replace, &block_to_replace_children);
 
         // children_to_remove_helper contains the id of either the last
         // block that we replaced or of the directory/link
