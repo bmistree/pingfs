@@ -106,6 +106,53 @@ void file_blocks_to_contents(
     }
 }
 
+void read_file_contents(std::string* result,
+    std::shared_ptr<const DirFileBlockData> file_inode,
+    std::shared_ptr<BlockManager> block_manager) {
+    assert(!file_inode->is_dir());
+    std::vector<std::shared_ptr<const FileContentsBlockData>> file_blocks;
+    block_util::get_file_contents(
+        file_inode->get_children(), &file_blocks, block_manager);
+
+    for (auto iter = file_blocks.cbegin(); iter != file_blocks.cend();
+         ++iter) {
+        *result += *((*iter)->get_data());
+    }
+}
+
+void get_file_contents(
+    const std::vector<BlockId>& blocks_to_check,
+    std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks,
+    std::shared_ptr<BlockManager> block_manager) {
+
+    std::shared_ptr<const BlockResponse> response =
+        block_manager->get_blocks(BlockRequest(blocks_to_check));
+    for (auto iter = response->get_blocks().cbegin();
+         iter != response->get_blocks().cend(); ++iter) {
+        std::shared_ptr<const FileContentsBlockData> contents =
+            block_util::try_cast_contents(*iter);
+        if (contents) {
+            file_blocks->push_back(contents);
+            continue;
+        }
+
+        std::shared_ptr<const LinkBlockData> link_data =
+            block_util::try_cast_link(*iter);
+        if (link_data) {
+            get_file_contents(
+                link_data->get_children(), file_blocks, block_manager);
+        }
+    }
+}
+
+void get_file_contents(
+    std::shared_ptr<const DirFileBlockData> file_data,
+    std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks,
+    std::shared_ptr<BlockManager> block_manager) {
+    assert(!file_data->is_dir());
+    get_file_contents(
+        file_data->get_children(), file_blocks, block_manager);
+}
 
 }  // namespace block_util
 

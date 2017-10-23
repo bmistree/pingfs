@@ -117,15 +117,6 @@ class BlockFuse : public FuseWrapper {
         std::vector<std::shared_ptr<const DirFileBlockData>>* children);
 
     /**
-     * Return all FileContentsBlockData blocks for the file associated with
-     * {@code file_data}. Note that {@code file_data} must be associated with
-     * a file and not a directory. Also note that {@code file_blocks} will be
-     * in the order that the block appears in the file.
-     */
-    void get_file_contents(std::shared_ptr<const DirFileBlockData> file_data,
-        std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks);
-
-    /**
      * Write the entire string in {@code file_contents} to the file
      * system starting at the inode in the final position in {@code blockes}.
      *
@@ -136,13 +127,6 @@ class BlockFuse : public FuseWrapper {
     void write_file_starting_at_node(
         const std::vector<BlockPtr>* blocks,
         const std::string& file_contents);
-
-    /**
-     * Read the contents of a file referenced by {@code file_inode}
-     * into {@code result}.
-     */
-    void read_file_contents(std::string* result,
-        std::shared_ptr<const DirFileBlockData> file_inode);
 
     void write_file_starting_at_node(
         std::vector<BlockPtr>* blocks,

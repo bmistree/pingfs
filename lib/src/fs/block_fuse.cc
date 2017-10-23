@@ -557,7 +557,7 @@ int BlockFuse::read(const char *path, char *buffer, size_t size,
     // returning the relevant portion. Would be much more efficient to just find
     // the targeted portion of the file.
     std::vector<std::shared_ptr<const FileContentsBlockData>> file_blocks;
-    get_file_contents(dir_file, &file_blocks);
+    block_util::get_file_contents(dir_file, &file_blocks, block_manager_);
     std::string contents;
     block_util::file_blocks_to_contents(file_blocks, &contents);
 
@@ -572,48 +572,6 @@ int BlockFuse::read(const char *path, char *buffer, size_t size,
                                              : (contents.size() - offset);
     std::memcpy(buffer, contents.c_str() + offset, actual_size);
     return actual_size;
-}
-
-/**
- * Performs a depth-first left-to-right search to populate
- * file_blocks from block tree.
- */
-static void get_contents_helper(
-    const std::vector<BlockId>& blocks_to_check,
-    std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks,
-    std::shared_ptr<BlockManager> block_manager) {
-
-    std::shared_ptr<const BlockResponse> response =
-        block_manager->get_blocks(BlockRequest(blocks_to_check));
-    for (auto iter = response->get_blocks().cbegin();
-         iter != response->get_blocks().cend(); ++iter) {
-        std::shared_ptr<const FileContentsBlockData> contents =
-            block_util::try_cast_contents(*iter);
-        if (contents) {
-            file_blocks->push_back(contents);
-            continue;
-        }
-
-        std::shared_ptr<const LinkBlockData> link_data =
-            block_util::try_cast_link(*iter);
-        if (link_data) {
-            get_contents_helper(
-                link_data->get_children(), file_blocks, block_manager);
-        }
-    }
-}
-
-void BlockFuse::read_file_contents(std::string* result,
-    std::shared_ptr<const DirFileBlockData> file_inode) {
-    assert(!file_inode->is_dir());
-    std::vector<std::shared_ptr<const FileContentsBlockData>> file_blocks;
-    get_contents_helper(
-        file_inode->get_children(), &file_blocks, block_manager_);
-
-    for (auto iter = file_blocks.cbegin(); iter != file_blocks.cend();
-         ++iter) {
-        *result += *((*iter)->get_data());
-    }
 }
 
 static Stat gen_file_stat(const Mode& mode, std::size_t size) {
@@ -691,7 +649,8 @@ int BlockFuse::write(const char *path, const char *buffer,
     }
 
     std::string file_contents;
-    read_file_contents(&file_contents, resolved_data);
+    block_util::read_file_contents(&file_contents, resolved_data,
+        block_manager_);
 
     if (static_cast<std::size_t>(offset) > file_contents.size()) {
         return -1;
@@ -834,13 +793,6 @@ void BlockFuse::write_file_starting_at_node(
             file_inode->get_children(), ids_to_add);
 }
 
-void BlockFuse::get_file_contents(
-    std::shared_ptr<const DirFileBlockData> file_data,
-    std::vector<std::shared_ptr<const FileContentsBlockData>>* file_blocks) {
-    assert(!file_data->is_dir());
-    get_contents_helper(
-        file_data->get_children(), file_blocks, block_manager_);
-}
 
 int BlockFuse::create(const char *path, mode_t mode,
     struct fuse_file_info *fi) {
