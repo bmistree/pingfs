@@ -12,6 +12,7 @@
 #include "lib/block/block_data/stat_test.hpp"
 #include "lib/block/block_manager/async_response_test.hpp"
 #include "lib/block/block_manager/async_block_manager_test.hpp"
+#include "lib/block/block_manager/ping/pass_through_translator_test.hpp"
 
 #include "lib/fs/fs_util_test.hpp"
 #include "lib/fs/block_fuse_test.hpp"

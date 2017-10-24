@@ -15,6 +15,10 @@ class EchoRequest {
     friend std::ostream& operator<< (std::ostream& os,
         const EchoRequest& request);
 
+    uint16_t get_identifier() const;
+    uint16_t get_sequence_number() const;
+    const std::string& get_body() const;
+
  private:
     const uint16_t checksum_;
     const uint16_t identifier_;

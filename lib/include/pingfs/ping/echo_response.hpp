@@ -53,6 +53,10 @@ class IpV4Stream {
 class EchoResponse {
  public:
     explicit EchoResponse(IpV4Stream* ipv4_stream);
+    EchoResponse(uint16_t identifier,
+        uint16_t sequence_number,
+        const std::string data);
+
     ~EchoResponse();
 
     const std::string& get_data() const;
@@ -60,9 +64,6 @@ class EchoResponse {
     const uint16_t get_sequence_number() const;
 
  private:
-    EchoResponse(uint16_t identifier, uint16_t sequence_number,
-        const std::string data);
-
     const uint16_t identifier_;
     const uint16_t sequence_number_;
     const std::string data_;

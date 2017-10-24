@@ -44,4 +44,16 @@ std::ostream& operator<< (std::ostream& os, const EchoRequest& request) {
     return os;
 }
 
+uint16_t EchoRequest::get_identifier() const {
+    return identifier_;
+}
+
+uint16_t EchoRequest::get_sequence_number() const {
+    return sequence_number_;
+}
+
+const std::string& EchoRequest::get_body() const {
+    return body_;
+}
+
 }  // namespace pingfs
