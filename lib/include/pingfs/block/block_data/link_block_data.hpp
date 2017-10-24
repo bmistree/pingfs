@@ -22,6 +22,9 @@ class LinkBlockData : public BlockData {
 
     const std::vector<BlockId>& get_children() const;
 
+    void gen_block_data_proto(
+        proto::BlockDataProto* proto) const override;
+
  private:
     const std::vector<BlockId> children_;
 };

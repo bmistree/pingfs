@@ -33,6 +33,8 @@ class DirFileBlockData : public BlockData {
     bool operator!=(const BlockData &other) const;
 
     void gen_proto(proto::DirFileProto* proto) const;
+    void gen_block_data_proto(
+        proto::BlockDataProto* proto) const override;
 
     bool is_dir() const;
 

@@ -34,6 +34,11 @@ void DirFileBlockData::gen_proto(proto::DirFileProto* proto) const {
     }
 }
 
+void DirFileBlockData::gen_block_data_proto(
+    proto::BlockDataProto* proto) const {
+    gen_proto(proto->mutable_dir_file());
+}
+
 bool DirFileBlockData::operator==(const BlockData &o) const {
     const DirFileBlockData* other =
         dynamic_cast<const DirFileBlockData*>(&o);

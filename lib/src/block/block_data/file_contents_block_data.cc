@@ -39,6 +39,11 @@ void FileContentsBlockData::gen_proto(
     proto->set_data(*data_);
 }
 
+void FileContentsBlockData::gen_block_data_proto(
+    proto::BlockDataProto* proto) const {
+    gen_proto(proto->mutable_file_contents());
+}
+
 std::shared_ptr<const std::string> FileContentsBlockData::get_data() const {
     return data_;
 }

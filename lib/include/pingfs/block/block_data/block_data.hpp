@@ -15,6 +15,12 @@ class BlockData {
  public:
     virtual bool operator==(const BlockData &other) const = 0;
     virtual bool operator!=(const BlockData &other) const = 0;
+    /**
+     * Return a proto-ized version of these data in {@code proto}.
+     */
+    virtual void gen_block_data_proto(
+        proto::BlockDataProto* proto) const = 0;
+
     virtual ~BlockData() {
     }
  protected:

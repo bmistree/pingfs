@@ -18,6 +18,11 @@ void LinkBlockData::gen_proto(proto::LinkProto* proto) const {
     }
 }
 
+void LinkBlockData::gen_block_data_proto(
+    proto::BlockDataProto* proto) const {
+    gen_proto(proto->mutable_link());
+}
+
 bool LinkBlockData::operator==(const BlockData &o) const {
     const LinkBlockData* other =
         dynamic_cast<const LinkBlockData*>(&o);
