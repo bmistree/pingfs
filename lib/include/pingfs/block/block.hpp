@@ -18,6 +18,8 @@ class Block {
 
     BlockId get_id() const;
 
+    void gen_proto(proto::BlockProto* proto) const;
+
     std::shared_ptr<const BlockData> get_data() const;
 
     bool operator==(const Block &other) const;

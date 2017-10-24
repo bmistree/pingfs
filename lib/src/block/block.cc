@@ -29,6 +29,11 @@ bool Block::operator!=(const Block &other) const {
     return !(*this == other);
 }
 
+void Block::gen_proto(proto::BlockProto* proto) const {
+    proto->set_id(block_id_);
+    data_->gen_block_data_proto(proto->mutable_data());
+}
+
 Block::~Block() {
 }
 

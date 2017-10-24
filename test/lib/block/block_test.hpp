@@ -52,5 +52,12 @@ TEST(Block, InequalityOverrideSameData) {
     ASSERT_NE(block_a, block_b);
 }
 
+TEST(Block, SerializeDeserializeBlock) {
+    std::shared_ptr<const pingfs::BlockData> data = test_dir_data("data");
+    pingfs::Block block(1u, data);
+    pingfs::proto::BlockProto block_proto;
+    block.gen_proto(&block_proto);
+    ASSERT_EQ(block, pingfs::Block(block_proto));
+}
 
 #endif
