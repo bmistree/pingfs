@@ -92,6 +92,11 @@ target_link_libraries(single_ping pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${P
 add_executable(in_memory "${APP_FOLDER}/in_memory.cc")
 target_link_libraries(in_memory pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
 
+# Tests building a file system that stores
+# data in pings to a single host
+add_executable(single_host_fs "${APP_FOLDER}/single_host_fs.cc")
+target_link_libraries(single_host_fs pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
+
 
 ##### test builds ######
 set(TEST_FOLDER "../test")
