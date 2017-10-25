@@ -50,7 +50,11 @@ void Ping::ping(const std::string& content,
 
     // Generate request
     EchoRequest request(identifier, sequence_number, content);
+    ping(request, endpoint);
+}
 
+void Ping::ping(const EchoRequest& request,
+    const icmp::endpoint& endpoint) {
     // Serialize request
     boost::asio::streambuf request_buffer;
     std::ostream os(&request_buffer);
@@ -59,6 +63,5 @@ void Ping::ping(const std::string& content,
     // Send request
     sock_.send_to(request_buffer.data(), endpoint);
 }
-
 
 }  // namespace pingfs

@@ -10,6 +10,7 @@
 
 #include <string>
 
+#include "echo_request.hpp"
 #include "echo_response.hpp"
 
 namespace pingfs {
@@ -21,6 +22,9 @@ class Ping : public Publisher<EchoResponse> {
     void ping(const std::string& content,
         const boost::asio::ip::icmp::endpoint& enpoint,
         uint16_t identifier, uint16_t sequence_number);
+
+    void ping(const EchoRequest& request,
+        const boost::asio::ip::icmp::endpoint& endpoint);
 
     boost::asio::ip::icmp::endpoint resolve(const std::string& destination);
 
