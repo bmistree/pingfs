@@ -88,9 +88,9 @@ set(APP_FOLDER "../app")
 add_executable(single_ping "${APP_FOLDER}/single_ping.cc")
 target_link_libraries(single_ping pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
 
-# Tests building a dummy fuse filesystem
-add_executable(dummy_fuse "${APP_FOLDER}/dummy_fuse.cc")
-target_link_libraries(dummy_fuse pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
+# Tests building an in-memory fuse filesystem
+add_executable(in_memory "${APP_FOLDER}/in_memory.cc")
+target_link_libraries(in_memory pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
 
 
 ##### test builds ######
