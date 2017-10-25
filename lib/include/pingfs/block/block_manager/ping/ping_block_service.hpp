@@ -17,8 +17,8 @@
 namespace pingfs {
 
 class PingBlockService :
-        Subscriber<EchoResponse>,
-        Publisher<std::shared_ptr<const Block>> {
+        public Subscriber<EchoResponse>,
+        public Publisher<std::shared_ptr<const Block>> {
  public:
     /**
      * @param remote_endpt A hostname to bounce messages
@@ -49,7 +49,7 @@ class PingBlockService :
      * Indicates that if we receive this block, we should
      * discard it and not notify, instead of re-transmitting it.
      */
-    virtual void free_block(BlockId blockId) = 0;
+    virtual void free_block(BlockId block_id) = 0;
 
  protected:
     /**

@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 
+#include "ping_block_service.hpp"
 
 namespace pingfs {
 
@@ -23,23 +24,17 @@ class PingBlockManager : public AsyncBlockManager {
     using ResponsePtr = std::shared_ptr<const BlockResponse>;
 
  public:
-    /**
-     * @param remote_endpt A hostname to bounce messages
-     * off of.
-     */
     PingBlockManager(
         std::shared_ptr<IdSupplier> id_supplier,
-        boost::asio::io_service* io_service,
-        const std::string& remote_endpt);
+        std::shared_ptr<PingBlockService> ping_block_service);
 
-    ~PingBlockManager() override;
+    virtual ~PingBlockManager();
 
     BlockPtr create_block(DataPtr data) override;
     void free_block(BlockId block_id) override;
 
  private:
-    Ping ping_;
-    boost::asio::ip::icmp::endpoint endpoint_;
+    std::shared_ptr<PingBlockService> ping_block_service_;
 };
 
 }  // namespace pingfs

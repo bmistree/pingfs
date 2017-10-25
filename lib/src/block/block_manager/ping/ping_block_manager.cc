@@ -4,22 +4,26 @@ namespace pingfs {
 
 PingBlockManager::PingBlockManager(
     std::shared_ptr<IdSupplier> id_supplier,
-    boost::asio::io_service* io_service,
-    const std::string& remote_endpt)
+    std::shared_ptr<PingBlockService> ping_block_service)
   : AsyncBlockManager(id_supplier),
-    ping_(io_service),
-    endpoint_(ping_.resolve(remote_endpt)) {
+    ping_block_service_(ping_block_service) {
+    ping_block_service_->subscribe(this);
 }
 
 PingBlockManager::~PingBlockManager() {
+    ping_block_service_->unsubscribe(this);
 }
 
-PingBlockManager::BlockPtr PingBlockManager::create_block(DataPtr data) {
-    throw "Unsupported operation";
+PingBlockManager::BlockPtr PingBlockManager::create_block(
+    DataPtr data) {
+    std::shared_ptr<const Block> block =
+        std::make_shared<const Block>(next_id(), data);
+    ping_block_service_->register_block(block);
+    return block;
 }
 
 void PingBlockManager::free_block(BlockId block_id) {
-    throw "Unsupported operation";
+    ping_block_service_->free_block(block_id);
 }
 
 }  // namespace pingfs
