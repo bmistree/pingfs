@@ -26,6 +26,12 @@ EchoRequest::EchoRequest(uint16_t identifier, uint16_t sequence_number,
     body_(body) {
 }
 
+EchoRequest::EchoRequest(const EchoResponse& resp)
+  : EchoRequest(resp.get_identifier(),
+      resp.get_sequence_number(),
+      resp.get_data()) {
+}
+
 EchoRequest::~EchoRequest() {
 }
 
@@ -54,6 +60,17 @@ uint16_t EchoRequest::get_sequence_number() const {
 
 const std::string& EchoRequest::get_body() const {
     return body_;
+}
+
+bool EchoRequest::operator==(const EchoRequest &other) const {
+    return ((checksum_ == other.checksum_) &&
+        (identifier_ == other.identifier_) &&
+        (sequence_number_ == other.sequence_number_) &&
+        (body_ == other.body_));
+}
+
+bool EchoRequest::operator!=(const EchoRequest &other) const {
+    return !(*this == other);
 }
 
 }  // namespace pingfs

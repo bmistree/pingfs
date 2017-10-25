@@ -1,6 +1,8 @@
 #ifndef _ECHO_REQUEST_
 #define _ECHO_REQUEST_
 
+#include "echo_response.hpp"
+
 #include <boost/asio.hpp>
 #include <string>
 
@@ -10,6 +12,11 @@ class EchoRequest {
  public:
     EchoRequest(uint16_t identifier, uint16_t sequence_number,
         const std::string& body);
+    /**
+     * Constructs a request whose id, seq number, and
+     * data are the same as in {@code resp}.
+     */
+    explicit EchoRequest(const EchoResponse& resp);
     ~EchoRequest();
 
     friend std::ostream& operator<< (std::ostream& os,
@@ -18,6 +25,10 @@ class EchoRequest {
     uint16_t get_identifier() const;
     uint16_t get_sequence_number() const;
     const std::string& get_body() const;
+
+    bool operator==(const EchoRequest &other) const;
+
+    bool operator!=(const EchoRequest &other) const;
 
  private:
     const uint16_t checksum_;
