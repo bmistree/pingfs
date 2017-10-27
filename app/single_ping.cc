@@ -73,6 +73,9 @@ bool parse_command_line(int argc, char** argv,
     return true;
 }
 
+void run_io_service(boost::asio::io_service* io_service) {
+    io_service->run();
+}
 
 int main(int argc, char** argv) {
     std::string hostname;
@@ -91,8 +94,8 @@ int main(int argc, char** argv) {
     boost::asio::ip::icmp::endpoint endpoint = ping.resolve(hostname);
     uint16_t identifier = 3533;
     ping.ping(ping_content, endpoint, identifier, 1111);
-    io_service.run();
-
+    std::thread t1(run_io_service, &io_service);
+    t1.detach();
     // Wait for a couple of seconds
     std::this_thread::sleep_for(std::chrono::seconds(2));
 

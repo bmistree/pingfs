@@ -27,15 +27,23 @@ Ping::~Ping() {
 
 void Ping::handle_receive(const boost::system::error_code& code,
     std::size_t length) {
+    // FIXME: Should probably check that:
+    //  1) This is an ICMP response;
+    //     (spent a while debugging when was issuing
+    //     pings to localhost why I got duplicate
+    //     messages.
+    //  2) We received all bytes for this request
     if (code.value() != boost::system::errc::success) {
         // FIXME: Probably should abort for now
         std::cerr << "Error when receiving: " << code << "\n";
     }
-
     reply_buffer_.commit(length);
     std::istream ipv4_stream(&reply_buffer_);
     IpV4Stream stream(&ipv4_stream);
     EchoResponse echo_response(&stream);
+    sock_.async_receive(reply_buffer_.prepare(65536),
+        std::bind(&Ping::handle_receive, this,
+            std::placeholders::_1, std::placeholders::_2));
     notify(echo_response);
 }
 
