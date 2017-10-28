@@ -10,6 +10,7 @@ namespace pingfs {
 
 class EchoResponse;
 class IpV4;
+class IcmpHeader;
 
 class IpV4Stream {
  public:
@@ -55,6 +56,7 @@ class IpV4Stream {
     std::istream* ipv4_stream_;
     friend EchoResponse;
     friend IpV4;
+    friend IcmpHeader;
 };
 
 }  // namespace pingfs
