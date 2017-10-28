@@ -31,12 +31,27 @@ class Ping : public Publisher<EchoResponse> {
  private:
     void handle_receive(const boost::system::error_code& code,
         std::size_t length);
+    void set_handler();
+
+    /**
+     * @return Whether or not a full packet was consumed
+     */
+    bool check_notify();
 
  private:
     boost::asio::io_service* io_service_;
     boost::asio::ip::icmp::resolver resolver_;
     boost::asio::ip::icmp::socket sock_;
-    boost::asio::streambuf reply_buffer_;
+    /**
+     * The next index to write into reply_buffer_.
+     */
+    std::size_t buffer_index_;
+    /**
+     * Where we receive ping bytes. Note that we should
+     * only set a single handler writing to this at a time
+     * to avoid data corruption.
+     */
+    std::string reply_buffer_;
 };
 
 }  // namespace pingfs

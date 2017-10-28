@@ -26,6 +26,17 @@ IpV4::IpV4(IpV4Stream* istream, std::size_t length)
     if (length < MIN_SIZE) {
         throw "Cannot deserialize header; too short";
     }
+
+    // Read the rest of bytes from istream corresponding
+    // checksum
+    istream->read_unsigned_short();
+
+    // Source ip address
+    istream->read_unsigned_short();
+    istream->read_unsigned_short();
+    // Dest ip address
+    istream->read_unsigned_short();
+    istream->read_unsigned_short();
 }
 
 IpV4::~IpV4() {

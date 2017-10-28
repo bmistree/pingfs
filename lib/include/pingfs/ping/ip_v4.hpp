@@ -24,7 +24,6 @@ class IpV4 {
 
     static uint16_t get_total_length(IpV4Stream* istream);
     static uint8_t get_proto(IpV4Stream* istream);
-
 };
 
 }  // namespace pingfs

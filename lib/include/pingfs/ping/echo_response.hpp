@@ -12,7 +12,7 @@ namespace pingfs {
 class EchoResponse {
  public:
     static const uint8_t CODE = 0;
-    static const uint8_t TYPE = 8;
+    static const uint8_t TYPE = 0;
 
     explicit EchoResponse(IpV4Stream* ipv4_stream);
     EchoResponse(uint16_t identifier,

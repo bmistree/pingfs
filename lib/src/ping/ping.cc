@@ -19,69 +19,69 @@ Ping::Ping(boost::asio::io_service* io_service)
   : io_service_(io_service),
     resolver_(*io_service),
     sock_(*io_service, icmp::v4()),
-    reply_buffer_() {
-    sock_.async_receive(reply_buffer_.prepare(65536),
-        std::bind(&Ping::handle_receive, this,
-            std::placeholders::_1, std::placeholders::_2));
+    buffer_index_(0),
+    reply_buffer_(60000, 0) {
+    set_handler();
 }
 
 Ping::~Ping() {
 }
 
-void Ping::handle_receive(const boost::system::error_code& code,
-    std::size_t length) {
-    sock_.async_receive(reply_buffer_.prepare(65536),
+void Ping::set_handler() {
+    sock_.async_receive(
+        boost::asio::buffer(
+            &reply_buffer_[buffer_index_],
+            reply_buffer_.size() - buffer_index_),
         std::bind(&Ping::handle_receive, this,
             std::placeholders::_1, std::placeholders::_2));
+}
 
-
-    // FIXME: Should probably check that:
-    //  1) This is an ICMP response;
-    //     (spent a while debugging when was issuing
-    //     pings to localhost why I got duplicate
-    //     messages.
-    //  2) We received all bytes for this request
-    if (code.value() != boost::system::errc::success) {
-        // FIXME: Probably should abort for now
-        std::cerr << "Error when receiving: " << code << "\n";
+bool Ping::check_notify() {
+    if (buffer_index_ < IpV4::MIN_SIZE) {
+        return false;
     }
+    std::string copy(reply_buffer_,
+        0 /* pos */,
+        buffer_index_);
 
-    if (length < IpV4::MIN_SIZE) {
-        return;
-    }
-    std::istream ipv4_stream(&reply_buffer_);
+    std::istringstream ipv4_stream(copy);
     IpV4Stream stream(&ipv4_stream);
-    IpV4 ip_v4(&stream, length);
+    IpV4 ip_v4(&stream, buffer_index_);
 
-    if (ip_v4.get_length() > length) {
+    if (ip_v4.get_length() > buffer_index_) {
         // More bytes to read for this packet
-        return;
+        return false;
     }
+
+    // Copy data forward
+    // FIXME: Probably should use a ring buffer instead
+    // of copying data
+    reply_buffer_.replace(0, copy.size(), copy);
+    buffer_index_ -= ip_v4.get_length();
 
     // We will take bytes from this buffer and
     // try to produce a response.
-    reply_buffer_.commit(ip_v4.get_length());
-
     if (!ip_v4.is_icmp()) {
         // This wasn't an ICMP packet (for some reason).
-        return;
+        return true;
     }
 
     IcmpHeader icmp_header(&stream);
 
     if (icmp_header.get_code() != EchoResponse::CODE) {
-        return;
+        return true;
     }
     if (icmp_header.get_type() != EchoResponse::TYPE) {
-        return;
+        return true;
     }
 
     std::vector<char> data_buffer(
         ip_v4.get_length() -
         // Size of IP header; FIXME: we're assuming
         // this is fixed
-        20 -
+        IpV4::MIN_SIZE -
         // Size of ICMP header
+        // FIXME: do not hard code
         8);
     ipv4_stream.read(&data_buffer[0], data_buffer.size());
 
@@ -91,6 +91,22 @@ void Ping::handle_receive(const boost::system::error_code& code,
         icmp_header.get_sequence_number(),
         data);
     notify(echo_response);
+    return true;
+}
+
+void Ping::handle_receive(
+    const boost::system::error_code& code,
+    std::size_t length) {
+    buffer_index_ += length;
+    if (code.value() != boost::system::errc::success) {
+        // FIXME: Probably should abort for now
+        std::cerr << "Error when receiving: " << code << "\n";
+        throw "Unexpected error";
+    }
+
+    while (check_notify()) {
+    }
+    set_handler();
 }
 
 icmp::endpoint Ping::resolve(const std::string& destination) {
@@ -101,7 +117,6 @@ icmp::endpoint Ping::resolve(const std::string& destination) {
 void Ping::ping(const std::string& content,
     const icmp::endpoint& endpoint,
     uint16_t identifier, uint16_t sequence_number) {
-
     // Generate request
     EchoRequest request(identifier, sequence_number, content);
     ping(request, endpoint);
