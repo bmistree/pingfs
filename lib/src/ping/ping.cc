@@ -1,5 +1,6 @@
 #include <pingfs/ping/echo_request.hpp>
 #include <pingfs/ping/echo_response.hpp>
+#include <pingfs/ping/ip_v4_stream.hpp>
 #include <pingfs/ping/ping.hpp>
 
 #include <boost/asio.hpp>
