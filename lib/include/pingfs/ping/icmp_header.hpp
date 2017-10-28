@@ -16,6 +16,8 @@ class IcmpHeader {
 
     uint8_t get_type() const;
     uint8_t get_code() const;
+    uint16_t get_identifier() const;
+    uint16_t get_sequence_number() const;
 
  private:
     uint8_t type_;

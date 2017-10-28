@@ -11,10 +11,13 @@ namespace pingfs {
 
 class EchoResponse {
  public:
+    static const uint8_t CODE = 0;
+    static const uint8_t TYPE = 8;
+
     explicit EchoResponse(IpV4Stream* ipv4_stream);
     EchoResponse(uint16_t identifier,
         uint16_t sequence_number,
-        const std::string data);
+        const std::string& data);
 
     ~EchoResponse();
 

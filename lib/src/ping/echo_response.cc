@@ -15,7 +15,7 @@ EchoResponse::EchoResponse(IpV4Stream* ipv4_stream)
 }
 
 EchoResponse::EchoResponse(uint16_t identifier, uint16_t sequence_number,
-    const std::string data)
+    const std::string& data)
   : identifier_(identifier),
     sequence_number_(sequence_number),
     data_(data) {
