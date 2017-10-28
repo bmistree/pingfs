@@ -112,7 +112,6 @@ void run_io_service(boost::asio::io_service* io_service) {
     io_service->run();
 }
 
-
 /**
  * Tests that running a ping-based file system that
  * issues pings to a single endpoint.
@@ -143,6 +142,7 @@ int main(int argc, char** argv) {
     fuse_params(mount_point, debug, &fuse_args);
 
     std::thread t1(run_io_service, &io_service);
+    t1.detach();
 
     return fuse_main(fuse_args.size() - 1,
         fuse_args.data(), ops.get());
