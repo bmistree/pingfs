@@ -33,6 +33,7 @@ class BlockFuse : public FuseWrapper {
     int getattr(const char *path, struct stat *stbuf) override;
     int mkdir(const char *path, mode_t mode) override;
     int rmdir(const char *path) override;
+    int unlink(const char *path) override;
     int readdir(const char *path, void *buf,
         fuse_fill_dir_t filler, off_t offset,
         struct fuse_file_info *fi) override;

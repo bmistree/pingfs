@@ -300,6 +300,20 @@ static void create_file(
         0);
 }
 
+static void create_file(
+    const std::string& filename,
+    std::shared_ptr<pingfs::BlockFuse> block_fuse) {
+    struct fuse_file_info info;
+    ASSERT_EQ(
+        block_fuse->create(filename.c_str(),
+            pingfs::Mode(pingfs::ReadWriteExecute::READ_WRITE,
+                pingfs::ReadWriteExecute::READ_WRITE,
+                pingfs::ReadWriteExecute::READ_WRITE,
+                pingfs::FileType::REGULAR).to_mode_t(),
+            &info),
+        0);
+}
+
 static void test_create_write_read(
     const std::vector<std::string>& to_write_vec) {
     std::string filename = "/a.txt";
@@ -309,6 +323,61 @@ static void test_create_write_read(
          iter != to_write_vec.cend(); ++iter) {
         test_write_read(filename, *iter, block_fuse);
     }
+}
+
+
+TEST(BlockFuse, UnlinkFile) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
+
+    std::shared_ptr<pingfs::BlockFuse> block_fuse =
+        std::make_shared<pingfs::BlockFuse>(
+            pingfs::BlockFuse(block_manager, 55));
+
+    std::size_t pre_num_blocks = block_manager->num_blocks();
+    std::string filename = "/a";
+    create_file(filename, block_fuse);
+
+    // Delete file and check that it is gone
+    ASSERT_EQ(block_fuse->unlink(filename.c_str()), 0);
+    struct stat stbuf;
+    verify_path_dne(
+        block_fuse->getattr(filename.c_str(), &stbuf));
+
+    // Check that have the same number of blocks that
+    // we initially did
+    ASSERT_EQ(block_manager->num_blocks(), pre_num_blocks);
+}
+
+
+TEST(BlockFuse, UnlinkLargeFile) {
+    std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
+        std::make_shared<pingfs::MemoryBlockManager>(
+            std::make_shared<pingfs::CounterSupplier>());
+
+    std::shared_ptr<pingfs::BlockFuse> block_fuse =
+        std::make_shared<pingfs::BlockFuse>(
+            pingfs::BlockFuse(block_manager, 55));
+
+    std::size_t pre_num_blocks = block_manager->num_blocks();
+    std::string filename = "/a";
+    create_file(filename, block_fuse);
+
+    // write a large file into system
+    struct fuse_file_info fi;
+    char to_write[10000];
+    for (std::size_t i = 0; i < 10000; ++i) {
+        to_write[i] = static_cast<char>(i % 128);
+    }
+    ASSERT_EQ(block_fuse->write(filename.c_str(),
+            to_write, 10000, 0, &fi), 10000);
+    ASSERT_EQ(block_fuse->unlink(filename.c_str()), 0);
+    
+    // Check that file is gone
+    struct stat stbuf;
+    verify_path_dne(block_fuse->getattr(filename.c_str(), &stbuf));
+    ASSERT_EQ(block_manager->num_blocks(), pre_num_blocks);
 }
 
 TEST(BlockFuse, WriteReadSucceeds) {

@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <iostream>
+
 
 namespace pingfs {
 
@@ -174,6 +174,12 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
         block_manager_->free_block((*iter)->get_id());
     }
     return 0;
+}
+
+
+int BlockFuse::unlink(const char *path) {
+    // Dirs and files are the same
+    return rmdir(path);
 }
 
 

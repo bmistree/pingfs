@@ -18,6 +18,7 @@ std::shared_ptr<struct fuse_operations> FuseWrapper::generate() {
     ops->getattr = fuse_wrapper::getattr;
     ops->mkdir = fuse_wrapper::mkdir;
     ops->rmdir = fuse_wrapper::rmdir;
+    ops->unlink = fuse_wrapper::unlink;
     ops->readdir = fuse_wrapper::readdir;
     ops->read = fuse_wrapper::read;
     ops->write = fuse_wrapper::write;
@@ -38,6 +39,10 @@ int mkdir(const char *path, mode_t mode) {
 
 int rmdir(const char *path) {
     return global_wrapper->rmdir(path);
+}
+
+int unlink(const char *path) {
+    return global_wrapper->unlink(path);
 }
 
 int readdir(const char *path, void *buf,
