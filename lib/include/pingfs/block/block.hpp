@@ -26,6 +26,8 @@ class Block {
 
     bool operator!=(const Block &other) const;
 
+    std::string to_string() const;
+
  private:
     const BlockId block_id_;
     const std::shared_ptr<const BlockData> data_;

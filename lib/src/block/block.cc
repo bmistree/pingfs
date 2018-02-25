@@ -41,4 +41,9 @@ std::shared_ptr<const BlockData> Block::get_data() const {
     return data_;
 }
 
+std::string Block::to_string() const {
+    return "[block_id=" + std::to_string(block_id_) + ", data="
+        + data_->to_string() + "]";
+}
+
 }  // namespace pingfs
