@@ -48,5 +48,8 @@ std::shared_ptr<const std::string> FileContentsBlockData::get_data() const {
     return data_;
 }
 
+std::string FileContentsBlockData::to_string() const {
+    return "[FileContentsData]";
+}
 
 }  // namespace pingfs

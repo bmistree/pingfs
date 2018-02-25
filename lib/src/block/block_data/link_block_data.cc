@@ -43,4 +43,20 @@ const std::vector<BlockId>& LinkBlockData::get_children() const {
     return children_;
 }
 
+std::string LinkBlockData::to_string() const {
+    std::string stringified ="[LinkBlockData: children=[";
+
+    bool first_child = true;
+    for (auto child = children_.cbegin();
+         child != children_.cend(); ++child) {
+        if (!first_child) {
+            stringified += ", ";
+        }
+        stringified += std::to_string(*child);
+        first_child = false;
+    }
+    stringified += "]]";
+    return stringified;
+}
+
 }  // namespace pingfs

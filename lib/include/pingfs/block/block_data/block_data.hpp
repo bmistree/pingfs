@@ -21,6 +21,8 @@ class BlockData {
     virtual void gen_block_data_proto(
         proto::BlockDataProto* proto) const = 0;
 
+    virtual std::string to_string() const = 0;
+    
     virtual ~BlockData() {
     }
  protected:

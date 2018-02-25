@@ -71,4 +71,22 @@ bool DirFileBlockData::is_dir() const {
     return stat_.is_dir();
 }
 
+std::string DirFileBlockData::to_string() const {
+    std::string stringified =
+        "[DirFileData: is_dir: " + std::to_string(is_dir()) +
+        ", name: " + name_ + ", children=[";
+
+    bool first_child = true;
+    for (auto child = children_.cbegin();
+         child != children_.cend(); ++child) {
+        if (!first_child) {
+            stringified += ", ";
+        }
+        stringified += std::to_string(*child);
+        first_child = false;
+    }
+    stringified += "]]";
+    return stringified;
+}
+
 }  // namespace pingfs

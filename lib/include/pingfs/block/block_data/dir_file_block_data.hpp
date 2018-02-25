@@ -38,6 +38,8 @@ class DirFileBlockData : public BlockData {
 
     bool is_dir() const;
 
+    std::string to_string() const override;
+
  private:
     /**
      * The name of the directory or file that this corresponds to.
