@@ -620,6 +620,11 @@ void BlockFuse::write_file_starting_at_node(
         block_util::replace_chain(blocks->rbegin(), blocks->rend(),
             file_inode->get_children(), ids_to_add,
             block_manager_);
+
+    // free all blocks up to and including file's head block
+    for (auto iter = blocks->cbegin(); iter != blocks->cend(); ++iter) {
+        block_manager_->free_block((*iter)->get_id());
+    }
 }
 
 int BlockFuse::create(const char *path, mode_t mode,
