@@ -48,4 +48,20 @@ std::size_t MemoryBlockManager::num_blocks() {
     return map_.size();
 }
 
+std::string MemoryBlockManager::to_string() {
+    bool first_entry = true;
+    std::string stringified = "[";
+    boost::mutex::scoped_lock locker(map_mutex_);
+    for (auto iter = map_.cbegin(); iter != map_.cend();
+         ++iter) {
+        if (!first_entry) {
+            stringified += ", ";
+        }
+        first_entry = false;
+        stringified += iter->second->to_string();
+    }
+    stringified += "]";
+    return stringified;
+}
+
 }  // namespace pingfs

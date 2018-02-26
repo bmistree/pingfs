@@ -29,6 +29,8 @@ class MemoryBlockManager : public BlockManager {
 
     ~MemoryBlockManager() override;
 
+    std::string to_string();
+
  private:
     std::unordered_map<BlockId, std::shared_ptr<const Block>> map_;
     boost::mutex map_mutex_;
