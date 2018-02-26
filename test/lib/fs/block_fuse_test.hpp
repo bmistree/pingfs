@@ -373,7 +373,7 @@ TEST(BlockFuse, UnlinkLargeFile) {
     ASSERT_EQ(block_fuse->write(filename.c_str(),
             to_write, 10000, 0, &fi), 10000);
     ASSERT_EQ(block_fuse->unlink(filename.c_str()), 0);
-    
+
     // Check that file is gone
     struct stat stbuf;
     verify_path_dne(block_fuse->getattr(filename.c_str(), &stbuf));

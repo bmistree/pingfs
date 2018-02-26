@@ -5,6 +5,7 @@
 #include <google/protobuf/repeated_field.h>
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace pingfs {
@@ -22,7 +23,7 @@ class BlockData {
         proto::BlockDataProto* proto) const = 0;
 
     virtual std::string to_string() const = 0;
-    
+
     virtual ~BlockData() {
     }
  protected:

@@ -26,7 +26,7 @@ class FileContentsBlockData : public BlockData {
         proto::BlockDataProto* proto) const override;
 
     std::string to_string() const override;
-    
+
     std::shared_ptr<const std::string> get_data() const;
 
  private:
