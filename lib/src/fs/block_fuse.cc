@@ -518,6 +518,12 @@ bool BlockFuse::create_file_block(const char* path,
     root_block_ =
         block_util::replace_chain(blocks->rbegin(), blocks->rend(),
             {}, {new_block->get_id()}, block_manager_);
+
+    // Free all blocks no longer in use
+    for (auto iter = blocks->cbegin(); iter != blocks->cend(); ++iter) {
+        block_manager_->free_block((*iter)->get_id());
+    }
+
     blocks->clear();
 
     // Get the updated path
