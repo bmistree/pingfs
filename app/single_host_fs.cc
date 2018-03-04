@@ -13,6 +13,8 @@
 
 #include <pingfs/block/block_manager/ping/track_freed_service.hpp>
 
+#include <pingfs/util/log.hpp>
+
 #include <memory>
 #include <iostream>
 #include <thread>
@@ -47,7 +49,7 @@ void fuse_params(const std::string& mount_point,
 
 bool parse_command_line(int argc, char** argv,
     std::string* hostname, std::string* mount_point,
-    bool* debug) {
+    bool* debug, std::string* log_file) {
     boost::program_options::options_description desc("Options");
     desc.add_options()
         ("help", "Print help messages")
@@ -60,7 +62,11 @@ bool parse_command_line(int argc, char** argv,
             "Whether to print debug values")
         ("mount_point",
             boost::program_options::value<std::string>(mount_point)->required(),
-            "Path to directory to mount pingfs on");
+            "Path to directory to mount pingfs on")
+        ("log_file",
+            boost::program_options::value<std::string>(log_file)
+              ->default_value("stdout"),
+            "Name of file to log to; default logs to stdout.");
 
     boost::program_options::variables_map vm;
     // Throw exceptions for missing/incorrect arguments
@@ -121,10 +127,18 @@ int main(int argc, char** argv) {
     std::string hostname;
     std::string mount_point;
     bool debug;
+    std::string log_file;
 
     if (!parse_command_line(
-            argc, argv, &hostname, &mount_point, &debug)) {
+            argc, argv, &hostname, &mount_point, &debug,
+            &log_file)) {
         return 1;
+    }
+
+    if (log_file.compare("stdout") == 0) {
+        pingfs::Log::init_cout(pingfs::LogLevel::DEBUG);
+    } else {
+        pingfs::Log::init_file(log_file, pingfs::LogLevel::DEBUG);
     }
 
     boost::asio::io_service io_service;
