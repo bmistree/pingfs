@@ -1,3 +1,5 @@
+#include <boost/exception/diagnostic_information.hpp>
+#include <boost/exception/error_info.hpp>
 #include <boost/program_options.hpp>
 
 #include <pingfs/fs/block_fuse.hpp>
@@ -61,17 +63,16 @@ bool parse_command_line(int argc, char** argv,
             "Path to directory to mount pingfs on");
 
     boost::program_options::variables_map vm;
-    boost::program_options::store(
-        boost::program_options::parse_command_line(argc, argv, desc),
-        vm);
-
-    // The user specified the help flag
-    if (vm.count("help")) {
-        std::cout << desc << "\n";
-        return false;
-    }
-    // Throw exceptions for missing arguments
+    // Throw exceptions for missing/incorrect arguments
     try {
+        boost::program_options::store(
+            boost::program_options::parse_command_line(argc, argv, desc),
+            vm);
+        // The user specified the help flag
+        if (vm.count("help")) {
+            std::cout << desc << "\n";
+            return false;
+        }
         boost::program_options::notify(vm);
     } catch(std::exception& ex) {
         std::cerr << "\nError: " << ex.what() << "\n";
