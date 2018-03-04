@@ -30,7 +30,6 @@ include_directories(".")
 
 ######### Generate pingfs_lib #########
 include_directories(${LIB_INC_FOLDER})
-file(GLOB LIB_UTIL_SRC_FILES "${LIB_SRC_FOLDER}/util/*.cc")
 file(GLOB LIB_PING_SRC_FILES "${LIB_SRC_FOLDER}/ping/*.cc")
 file(GLOB LIB_BLOCK_SRC_FILES "${LIB_SRC_FOLDER}/block/*.cc")
 file(GLOB LIB_BLOCK_DATA_SRC_FILES "${LIB_SRC_FOLDER}/block/block_data/*.cc")
@@ -41,7 +40,6 @@ file(GLOB LIB_FS_SRC_FILES "${LIB_SRC_FOLDER}/fs/*.cc")
 
 add_library(
   pingfs_lib
-  ${LIB_UTIL_SRC_FILES}
   ${LIB_PING_SRC_FILES}
   ${LIB_BLOCK_SRC_FILES}
   ${LIB_BLOCK_DATA_SRC_FILES}
