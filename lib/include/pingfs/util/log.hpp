@@ -92,6 +92,7 @@ class Log {
 
         log_internal(args...);
         (*ostream_) << "\n";
+        ostream_->flush();
     }
 
  private:
