@@ -3,8 +3,10 @@
 
 #include <boost/thread/recursive_mutex.hpp>
 
+#include <ctime>
 #include <cstdarg>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -39,13 +41,12 @@ class Log {
     }
 
     ~Log() {
+        ostream_->flush();
     }
 
  private:
     static std::shared_ptr<Log>& get_instance() {
         static std::shared_ptr<Log> instance;
-        // static std::once_flag flag;
-        // std::call_once(flag, [] { init_cout(LogLevel::DEBUG); });
         return instance;
     }
 
@@ -78,18 +79,21 @@ class Log {
 
         switch (level) {
           case LogLevel::DEBUG:
-            (*ostream_) << "DEBUG: ";
+            (*ostream_) << "[DEBUG] ";
             break;
           case LogLevel::INFO:
-            (*ostream_) << "INFO: ";
+            (*ostream_) << "[INFO] ";
             break;
           case LogLevel::ERROR:
-            (*ostream_) << "ERROR: ";
+            (*ostream_) << "[ERROR] ";
             break;
           default:
             throw "Unexpected level";
         }
 
+        auto t = std::time(nullptr);
+        auto tm = *std::localtime(&t);
+        (*ostream_) << std::put_time(&tm, "%d-%m-%Y %H:%M:%S") << ": ";
         log_internal(args...);
         (*ostream_) << "\n";
         ostream_->flush();
