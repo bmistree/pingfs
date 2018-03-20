@@ -15,6 +15,7 @@ add_definitions(-DFUSE_USE_VERSION=25)
 
 # Set compile parameters
 list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -Wall -pthread ${FUSE_FLAGS}")
+SET(ADDITIONAL_LIBRARIES "")
 
 
 ######## Compile protocol buffers #########
@@ -86,20 +87,20 @@ set(APP_FOLDER "../app")
 
 # Tests issuing a single ping and waiting on a response
 add_executable(single_ping "${APP_FOLDER}/single_ping.cc")
-target_link_libraries(single_ping pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
+target_link_libraries(single_ping pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
 
 # Tests building an in-memory fuse filesystem
 add_executable(in_memory "${APP_FOLDER}/in_memory.cc")
-target_link_libraries(in_memory pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
+target_link_libraries(in_memory pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
 
 # Tests building a file system that stores
 # data in pings to a single host
 add_executable(single_host_fs "${APP_FOLDER}/single_host_fs.cc")
-target_link_libraries(single_host_fs pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
+target_link_libraries(single_host_fs pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
 
 
 ##### test builds ######
 set(TEST_FOLDER "../test")
 
 add_executable(all_tests "${TEST_FOLDER}/test_main.cc")
-target_link_libraries(all_tests pingfs_lib ${Boost_LIBRARIES} libgtest pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY})
+target_link_libraries(all_tests pingfs_lib ${Boost_LIBRARIES} libgtest pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})

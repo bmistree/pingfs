@@ -4,12 +4,14 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include <pingfs/util/publisher.hpp>
 #include <pingfs/util/subscriber.hpp>
 
 #include <string>
 
+#include "data_buffer.hpp"
 #include "echo_request.hpp"
 #include "echo_response.hpp"
 
@@ -38,20 +40,21 @@ class Ping : public Publisher<EchoResponse> {
      */
     bool check_notify();
 
+    void internal_check_notify();
+
  private:
     boost::asio::io_service* io_service_;
     boost::asio::ip::icmp::resolver resolver_;
     boost::asio::ip::icmp::socket sock_;
-    /**
-     * The next index to write into reply_buffer_.
-     */
-    std::size_t buffer_index_;
     /**
      * Where we receive ping bytes. Note that we should
      * only set a single handler writing to this at a time
      * to avoid data corruption.
      */
     std::string reply_buffer_;
+
+    DataBuffer data_buffer_;
+    boost::mutex data_buffer_read_mutex_;
 };
 
 }  // namespace pingfs

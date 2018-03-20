@@ -19,8 +19,9 @@ Ping::Ping(boost::asio::io_service* io_service)
   : io_service_(io_service),
     resolver_(*io_service),
     sock_(*io_service, icmp::v4()),
-    buffer_index_(0),
-    reply_buffer_(60000, 0) {
+    reply_buffer_(60000, 0),
+    data_buffer_(),
+    data_buffer_read_mutex_() {
     set_handler();
 }
 
@@ -30,34 +31,28 @@ Ping::~Ping() {
 void Ping::set_handler() {
     sock_.async_receive(
         boost::asio::buffer(
-            &reply_buffer_[buffer_index_],
-            reply_buffer_.size() - buffer_index_),
+            &reply_buffer_[0],
+            reply_buffer_.size()),
         std::bind(&Ping::handle_receive, this,
             std::placeholders::_1, std::placeholders::_2));
 }
 
 bool Ping::check_notify() {
-    if (buffer_index_ < IpV4::MIN_SIZE) {
+    boost::mutex::scoped_lock locker(data_buffer_read_mutex_);
+    std::string copy = data_buffer_.peek();
+    if (copy.size() < IpV4::MIN_SIZE) {
         return false;
     }
-    std::string copy(reply_buffer_,
-        0 /* pos */,
-        buffer_index_);
 
     std::istringstream ipv4_stream(copy);
     IpV4Stream stream(&ipv4_stream);
-    IpV4 ip_v4(&stream, buffer_index_);
-
-    if (ip_v4.get_length() > buffer_index_) {
+    IpV4 ip_v4(&stream, copy.size());
+    
+    if (ip_v4.get_length() > copy.size()) {
         // More bytes to read for this packet
         return false;
     }
-
-    // Copy data forward
-    // FIXME: Probably should use a ring buffer instead
-    // of copying data
-    reply_buffer_.replace(0, copy.size(), copy);
-    buffer_index_ -= ip_v4.get_length();
+    data_buffer_.discard(ip_v4.get_length());
 
     // We will take bytes from this buffer and
     // try to produce a response.
@@ -90,23 +85,29 @@ bool Ping::check_notify() {
         icmp_header.get_identifier(),
         icmp_header.get_sequence_number(),
         data);
-    notify(echo_response);
+    io_service_->post(std::bind(&Ping::notify, this, echo_response));
     return true;
 }
 
 void Ping::handle_receive(
     const boost::system::error_code& code,
     std::size_t length) {
-    buffer_index_ += length;
     if (code.value() != boost::system::errc::success) {
         // FIXME: Probably should abort for now
-        std::cerr << "Error when receiving: " << code << "\n";
+        std::cerr << "Error when receiving: " << code;
         throw "Unexpected error";
     }
-
-    while (check_notify()) {
-    }
+    std::string data(reply_buffer_, 0 /* pos */, length);
     set_handler();
+
+    std::string content(data, 0, length);
+    data_buffer_.append(content);
+    io_service_->post(std::bind(&Ping::internal_check_notify, this));
+}
+
+void Ping::internal_check_notify() {
+    while (check_notify() && (data_buffer_.size() != 0)) {
+    }
 }
 
 icmp::endpoint Ping::resolve(const std::string& destination) {
