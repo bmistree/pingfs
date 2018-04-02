@@ -98,6 +98,11 @@ target_link_libraries(in_memory pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PRO
 add_executable(single_host_fs "${APP_FOLDER}/single_host_fs.cc")
 target_link_libraries(single_host_fs pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
 
+# Tests that can issue pings one after the other
+add_executable(multi_ping "${APP_FOLDER}/multi_ping.cc")
+target_link_libraries(multi_ping pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
+
+
 
 ##### test builds ######
 set(TEST_FOLDER "../test")
