@@ -21,6 +21,8 @@
 
 const uint16_t FS_ID = 55;
 
+const std::size_t NUM_IO_THREADS = 10;
+
 void copy_char(char** dest, const char* src,
     std::size_t src_len) {
     *dest = new char[src_len];
@@ -162,9 +164,11 @@ int main(int argc, char** argv) {
     std::vector<char*> fuse_args;
     fuse_params(mount_point, debug, &fuse_args);
 
-    std::thread t1(run_io_service, &io_service);
-    t1.detach();
-
+    // Allow multiple threads to service io events
+    for (std::size_t i = 0; i < NUM_IO_THREADS; ++i) {
+        std::thread t1(run_io_service, &io_service);
+        t1.detach();
+    }
     return fuse_main(fuse_args.size() - 1,
         fuse_args.data(), ops.get());
 }
