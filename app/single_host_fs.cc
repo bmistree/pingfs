@@ -38,6 +38,12 @@ void fuse_params(const std::string& mount_point,
         fuse_args->push_back(debug_opt);
     }
 
+    // FIXME: It's unclear why we have to run
+    // this in the foreground, but we do.
+    char* helper;
+    copy_char(&helper, "-f", 2);
+    fuse_args->push_back(helper);
+
     char* mount_point_ptr;
     copy_char(
         &mount_point_ptr,
