@@ -4,6 +4,8 @@
 #include <pingfs/fs/fuse_wrapper.hpp>
 #include <pingfs/block/block_manager/id_supplier/counter_supplier.hpp>
 
+#include <pingfs/util/log.hpp>
+
 #include <memory>
 
 
@@ -11,6 +13,8 @@
  * Tests building an in-memory file system.
  */
 int main(int argc, char** argv) {
+    pingfs::Log::init_cout(pingfs::LogLevel::ERROR);
+    
     std::shared_ptr<pingfs::MemoryBlockManager> block_manager =
         std::make_shared<pingfs::MemoryBlockManager>(
             std::make_shared<pingfs::CounterSupplier>());
