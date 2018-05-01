@@ -73,6 +73,10 @@ BlockPtr BlockFuse::resolve_inode(const std::string& path) const {
     return blocks.back();
 }
 
+void BlockFuse::free_block(BlockId block_id) {
+    block_manager_->free_block(block_id);
+}
+
 int BlockFuse::getattr(const char* path, struct stat* stbuf) {
     BlockPtr resolved = resolve_inode(path);
     if (!resolved) {
@@ -171,7 +175,7 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
 
     // Free all blocks no longer in use
     for (auto iter = blocks.cbegin(); iter != blocks.cend(); ++iter) {
-        block_manager_->free_block((*iter)->get_id());
+        free_block((*iter)->get_id());
     }
     return 0;
 }
@@ -223,7 +227,7 @@ int BlockFuse::rmdir(const char *path) {
 
     // Free all blocks no longer in use
     for (auto iter = blocks.cbegin(); iter != blocks.cend(); ++iter) {
-        block_manager_->free_block((*iter)->get_id());
+        free_block((*iter)->get_id());
     }
 
     block_util::recursive_free_children_blocks(
@@ -527,7 +531,7 @@ bool BlockFuse::create_file_block(const char* path,
 
     // Free all blocks no longer in use
     for (auto iter = blocks->cbegin(); iter != blocks->cend(); ++iter) {
-        block_manager_->free_block((*iter)->get_id());
+        free_block((*iter)->get_id());
     }
 
     blocks->clear();
@@ -629,7 +633,7 @@ void BlockFuse::write_file_starting_at_node(
 
     // free all blocks up to and including file's head block
     for (auto iter = blocks->cbegin(); iter != blocks->cend(); ++iter) {
-        block_manager_->free_block((*iter)->get_id());
+        free_block((*iter)->get_id());
     }
 }
 

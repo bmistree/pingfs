@@ -22,7 +22,7 @@ namespace pingfs {
  * A class that uses a block manager to store file information.
  */
 class BlockFuse : public FuseWrapper {
- private:
+ protected:
     using BlockPtr = std::shared_ptr<const Block>;
 
  public:
@@ -111,10 +111,15 @@ class BlockFuse : public FuseWrapper {
     bool create_file_block(const char* path,
         std::vector<BlockPtr>* blocks, std::size_t file_size,
         const Mode& mode);
+    
+ protected:
+    virtual void free_block(BlockId block_id);
 
- private:
+ protected:
     std::shared_ptr<BlockManager> block_manager_;
     BlockPtr root_block_;
+
+ private:
     const dev_t dev_;
 };
 
