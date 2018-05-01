@@ -37,6 +37,9 @@ class RevertibleBlockFuse : public BlockFuse {
      */
     void revert(BlockPtr reverted_root);
 
+    int mkdir(const char *path, mode_t mode) override;
+    int rmdir(const char *path) override;
+
  protected:
     /**
      * Asks block_manager_ to free a block if
@@ -45,12 +48,26 @@ class RevertibleBlockFuse : public BlockFuse {
     void free_block(BlockId block_id) override;
 
  private:
+
+    /**
+     * If a directory is prefixed with this, then
+     * take a restore point when it's created. Similarly
+     * revert when the dir is deleted.
+     */
+    static constexpr const char* REVERT_DIR_SENTINEL =
+        "/__checkpoint_";
+
     /**
      * If true, then do not free any block ids. This is an
      * overly-conservative approach. However, it guarantees
      * that we can always recover checkpointed state.
      */
     bool checkpoint_requested_;
+
+    /**
+     * Maps from filenames to the associated restore point.
+     */
+    std::unordered_map<std::string, BlockPtr> checkpoints_;
 };
 
 
