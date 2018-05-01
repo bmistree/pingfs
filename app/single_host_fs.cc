@@ -3,6 +3,7 @@
 #include <boost/program_options.hpp>
 
 #include <pingfs/fs/block_fuse.hpp>
+#include <pingfs/fs/revertible_block_fuse.hpp>
 
 #include <pingfs/fs/fuse_wrapper.hpp>
 
@@ -57,7 +58,7 @@ void fuse_params(const std::string& mount_point,
 
 bool parse_command_line(int argc, char** argv,
     std::string* hostname, std::string* mount_point,
-    bool* debug, std::string* log_file) {
+    bool* debug, std::string* log_file, bool* revertible) {
     boost::program_options::options_description desc("Options");
     desc.add_options()
         ("help", "Print help messages")
@@ -74,7 +75,11 @@ bool parse_command_line(int argc, char** argv,
         ("log_file",
             boost::program_options::value<std::string>(log_file)
               ->default_value("stdout"),
-            "Name of file to log to; default logs to stdout.");
+            "Name of file to log to; default logs to stdout.")
+        ("revertible",
+            boost::program_options::value<bool>(revertible)
+              ->default_value(false),
+            "Whether to create a revertible filesystem.");
 
     boost::program_options::variables_map vm;
     // Throw exceptions for missing/incorrect arguments
@@ -136,10 +141,11 @@ int main(int argc, char** argv) {
     std::string mount_point;
     bool debug;
     std::string log_file;
+    bool revertible;
 
     if (!parse_command_line(
             argc, argv, &hostname, &mount_point, &debug,
-            &log_file)) {
+            &log_file, &revertible)) {
         return 1;
     }
 
@@ -156,10 +162,18 @@ int main(int argc, char** argv) {
             gen_counter_supplier(),
             gen_block_service(&io_service, hostname));
 
-    pingfs::BlockFuse block_fuse(block_manager, FS_ID);
-    block_fuse.set_global_wrapper();
+    std::shared_ptr<pingfs::BlockFuse> block_fuse;
+    if (revertible) {
+        block_fuse = std::make_shared<pingfs::RevertibleBlockFuse>(
+            block_manager, FS_ID);
+    } else {
+        block_fuse = std::make_shared<pingfs::BlockFuse>(
+            block_manager, FS_ID);
+    }
+
+    block_fuse->set_global_wrapper();
     std::shared_ptr<struct fuse_operations> ops =
-        block_fuse.generate();
+        block_fuse->generate();
 
     std::vector<char*> fuse_args;
     fuse_params(mount_point, debug, &fuse_args);
