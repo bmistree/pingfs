@@ -102,6 +102,10 @@ target_link_libraries(single_host_fs pingfs_lib ${Boost_LIBRARIES} pingfs_proto 
 add_executable(multi_ping "${APP_FOLDER}/multi_ping.cc")
 target_link_libraries(multi_ping pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
 
+# Tests that can run a pingfs filesystem that issues
+# duplicate pings to target host
+add_executable(duplicate_ping_fs "${APP_FOLDER}/duplicate_ping_fs.cc")
+target_link_libraries(duplicate_ping_fs pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
 
 
 ##### test builds ######

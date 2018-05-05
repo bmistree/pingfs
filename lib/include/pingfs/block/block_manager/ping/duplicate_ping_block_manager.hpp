@@ -11,7 +11,7 @@
 
 namespace pingfs {
 
-class DuplicatePingBlockManager : PingBlockManager {
+class DuplicatePingBlockManager : public PingBlockManager {
  private:
     using BlockPtr = std::shared_ptr<const Block>;
     using DataPtr = std::shared_ptr<const BlockData>;
