@@ -33,7 +33,7 @@ class PingBlockManager : public AsyncBlockManager {
     BlockPtr create_block(DataPtr data) override;
     void free_block(BlockId block_id) override;
 
- private:
+ protected:
     std::shared_ptr<PingBlockService> ping_block_service_;
 };
 
