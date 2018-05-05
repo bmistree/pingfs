@@ -19,11 +19,11 @@ RevertibleBlockFuse::~RevertibleBlockFuse() {
 
 BlockPtr RevertibleBlockFuse::checkpoint() {
     checkpoint_requested_ = true;
-    return root_block_;
+    return get_root_block();
 }
 
 void RevertibleBlockFuse::revert(BlockPtr reverted_root) {
-    root_block_ = reverted_root;
+    set_root_block(reverted_root);
 }
 
 void RevertibleBlockFuse::free_block(BlockId block_id) {

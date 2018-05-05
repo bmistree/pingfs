@@ -171,7 +171,7 @@ int BlockFuse::mkdir(const char *path, mode_t mode) {
             {child_id_to_add}, block_manager_);
 
     // FIXME: Add lock guard to switch out root block
-    root_block_ = last_block_replaced;
+    set_root_block(last_block_replaced);
 
     // Free all blocks no longer in use
     for (auto iter = blocks.cbegin(); iter != blocks.cend(); ++iter) {
@@ -223,7 +223,7 @@ int BlockFuse::rmdir(const char *path) {
         blocks.rend(), {child_id_to_remove}, {}, block_manager_);
 
     // Switch root block with last created block
-    root_block_ = last_replaced_block;
+    set_root_block(last_replaced_block);
 
     // Free all blocks no longer in use
     for (auto iter = blocks.cbegin(); iter != blocks.cend(); ++iter) {
@@ -321,9 +321,10 @@ void BlockFuse::get_path_part(
 
     // special-case handling for resolving root block
     if (rel_file_dir_name == FsUtil::get_separator()) {
+        BlockPtr root = get_root_block();
         block_path->push_back(
             std::make_shared<Block>(
-                root_block_->get_id(), root_block_->get_data()));
+                root->get_id(), root->get_data()));
         return;
     }
 
@@ -525,9 +526,10 @@ bool BlockFuse::create_file_block(const char* path,
     // this directory.
     BlockPtr new_block = block_manager_->create_block(new_file_data);
     // FIXME: add some concurrency checks here.
-    root_block_ =
-        block_util::replace_chain(blocks->rbegin(), blocks->rend(),
-            {}, {new_block->get_id()}, block_manager_);
+    set_root_block(
+        block_util::replace_chain(
+            blocks->rbegin(), blocks->rend(),
+            {}, {new_block->get_id()}, block_manager_));
 
     // Free all blocks no longer in use
     for (auto iter = blocks->cbegin(); iter != blocks->cend(); ++iter) {
@@ -626,10 +628,10 @@ void BlockFuse::write_file_starting_at_node(
         blocks->back()->get_id(), updated_file);
 
     // FIXME: add concurrency protection
-    root_block_ =
+    set_root_block(
         block_util::replace_chain(blocks->rbegin(), blocks->rend(),
             file_inode->get_children(), ids_to_add,
-            block_manager_);
+            block_manager_));
 
     // free all blocks up to and including file's head block
     for (auto iter = blocks->cbegin(); iter != blocks->cend(); ++iter) {
@@ -657,6 +659,14 @@ int BlockFuse::create(const char *path, mode_t mode,
         return set_no_such_file_or_dir();
     }
     return 0;
+}
+
+const std::shared_ptr<const Block>& BlockFuse::get_root_block() const {
+    return root_block_;
+}
+
+void BlockFuse::set_root_block(BlockPtr new_root) {
+    root_block_ = new_root;
 }
 
 }  // namespace pingfs

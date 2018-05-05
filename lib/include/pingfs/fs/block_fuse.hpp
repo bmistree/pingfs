@@ -111,15 +111,17 @@ class BlockFuse : public FuseWrapper {
     bool create_file_block(const char* path,
         std::vector<BlockPtr>* blocks, std::size_t file_size,
         const Mode& mode);
-    
+
  protected:
     virtual void free_block(BlockId block_id);
+    const BlockPtr& get_root_block() const;
+    virtual void set_root_block(BlockPtr new_root);
 
  protected:
     std::shared_ptr<BlockManager> block_manager_;
-    BlockPtr root_block_;
 
  private:
+    BlockPtr root_block_;
     const dev_t dev_;
 };
 
