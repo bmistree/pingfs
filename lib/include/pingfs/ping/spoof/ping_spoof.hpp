@@ -23,7 +23,7 @@ class PingSpoof {
         const boost::asio::ip::address_v4& spoofed_src,
         const boost::asio::ip::address_v4& spoofed_target);
 
-    void send(std::shared_ptr<EchoRequest> echo_request,
+    void send(std::shared_ptr<const EchoRequest> echo_request,
         const boost::asio::ip::address_v4& spoofed_src,
         const boost::asio::ip::address_v4& spoofed_target);
 

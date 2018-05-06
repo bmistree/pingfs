@@ -53,7 +53,7 @@ void PingSpoof::send(
     sock_.send_to(request_buffer.data(), endpoint);
 }
 
-void PingSpoof::send(std::shared_ptr<EchoRequest> echo_request,
+void PingSpoof::send(std::shared_ptr<const EchoRequest> echo_request,
     const boost::asio::ip::address_v4& spoofed_src,
     const boost::asio::ip::address_v4& spoofed_target) {
 

@@ -7,25 +7,16 @@
 
 namespace pingfs {
 
-static std::vector<boost::asio::ip::icmp::endpoint> get_endpts(
-    const std::vector<std::string>& str_endpts,
-    std::shared_ptr<Ping> ping) {
-    std::vector<boost::asio::ip::icmp::endpoint> resolved;
-    for (auto iter = str_endpts.cbegin(); iter != str_endpts.cend();
-         ++iter) {
-        resolved.push_back(ping->resolve(*iter));
-    }
-    return resolved;
-}
-
 DistributedFreedService::DistributedFreedService(
     uint16_t fs_id,
     std::shared_ptr<Ping> ping,
     std::shared_ptr<BlockPingTranslator> translator,
     const std::string& primary_endpt,
-    const std::vector<std::string>& other_endpts)
+    std::shared_ptr<PingSpoof> spoofer,
+    const std::vector<std::shared_ptr<SpoofInfo>>& other_nodes)
  : TrackFreedService(fs_id, ping, translator, primary_endpt),
-   other_endpts_(get_endpts(other_endpts, ping)) {
+   spoofer_(spoofer),
+   other_nodes_(other_nodes) {
 }
 
 DistributedFreedService::~DistributedFreedService() {
@@ -47,11 +38,12 @@ void DistributedFreedService::register_root(
 
 void DistributedFreedService::send_to_additional_endpts(
     std::shared_ptr<const Block> block) {
+
     std::shared_ptr<const EchoRequest> request = translate(block);
-    for (auto endpt_iter = other_endpts_.cbegin();
-         endpt_iter != other_endpts_.cend();
-         ++endpt_iter) {
-        send_to_endpt(*endpt_iter, request);
+    for (auto other_iter = other_nodes_.cbegin();
+         other_iter != other_nodes_.cend(); ++other_iter) {
+        spoofer_->send(request, (*other_iter)->get_spoofed_src(),
+            (*other_iter)->get_bounce_target());
     }
 }
 
