@@ -35,7 +35,7 @@ class PingBlockService :
     /**
      * Start transmitting {@code block} across network.
      */
-    void register_block(std::shared_ptr<const Block> block);
+    virtual void register_block(std::shared_ptr<const Block> block);
 
     /**
      * Subscriber override. Check if {@code resp}
@@ -57,6 +57,14 @@ class PingBlockService :
      * request that contained a block with id {@code blockId}.
      */
     virtual bool should_recycle(BlockId blockId) = 0;
+    std::shared_ptr<BlockPingTranslator> translator_;
+
+    void send_to_endpt(
+        boost::asio::ip::icmp::endpoint endpt,
+        std::shared_ptr<const EchoRequest> request);
+
+    std::shared_ptr<const EchoRequest> translate(
+        std::shared_ptr<const Block> block);
 
  private:
     /**
@@ -83,7 +91,6 @@ class PingBlockService :
     const uint16_t id_;
 
     std::shared_ptr<Ping> ping_;
-    std::shared_ptr<BlockPingTranslator> translator_;
 
     /**
      * The endpoint that we should retransmit received blocks to

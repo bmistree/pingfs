@@ -16,10 +16,10 @@ PingBlockService::PingBlockService(
     std::shared_ptr<Ping> ping,
     std::shared_ptr<BlockPingTranslator> translator,
     const std::string& remote_endpt)
-  : fs_id_(fs_id),
+  : translator_(translator),
+    fs_id_(fs_id),
     id_(id_generator_++),
     ping_(ping),
-    translator_(translator),
     endpoint_(ping->resolve(remote_endpt)) {
     ping_->subscribe(this);
 }
@@ -30,9 +30,18 @@ PingBlockService::~PingBlockService() {
 
 void PingBlockService::register_block(
     std::shared_ptr<const Block> block) {
-    std::shared_ptr<const EchoRequest> request =
-        translator_->to_request(block, fs_id_, id_);
-    ping_->ping(*request, endpoint_);
+    send_to_endpt(endpoint_, translate(block));
+}
+
+std::shared_ptr<const EchoRequest> PingBlockService::translate(
+    std::shared_ptr<const Block> block) {
+    return translator_->to_request(block, fs_id_, id_);
+}
+
+void PingBlockService::send_to_endpt(
+    boost::asio::ip::icmp::endpoint endpt,
+    std::shared_ptr<const EchoRequest> request) {
+   ping_->ping(*request, endpoint_);
 }
 
 void PingBlockService::process(const EchoResponse& resp) {
