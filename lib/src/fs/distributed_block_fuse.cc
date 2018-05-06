@@ -10,9 +10,11 @@ using BlockPtr = std::shared_ptr<const Block>;
 
 DistributedBlockFuse::DistributedBlockFuse(std::shared_ptr<BlockManager> block_manager,
     dev_t dev,
-    std::shared_ptr<UpdatingIdSupplier> updating_id_supplier)
+    std::shared_ptr<UpdatingIdSupplier> updating_id_supplier,
+    std::shared_ptr<DistributedFreedService> distributed_ping_service)
  : BlockFuse(block_manager, dev),
-   updating_id_supplier_(updating_id_supplier) {
+   updating_id_supplier_(updating_id_supplier),
+   distributed_ping_service_(distributed_ping_service) {
 }
 
 DistributedBlockFuse::~DistributedBlockFuse() {
@@ -46,6 +48,11 @@ void DistributedBlockFuse::process(const BlockPtr& block) {
         return;
     }
     set_root_block(block);
+}
+
+void DistributedBlockFuse::set_root_block(BlockPtr new_root) {
+    // send root block out to all other nodes
+    distributed_ping_service_->register_root(new_root);
 }
 
 }  // namespace pingfs
