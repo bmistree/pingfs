@@ -9,12 +9,12 @@
 
 namespace pingfs {
 
-class UpdatingIdSupplier {
+class UpdatingIdSupplier : public IdSupplier {
  public:
     UpdatingIdSupplier(uint8_t fixed_low_order_bits);
     virtual ~UpdatingIdSupplier();
-    virtual BlockId next_id();
-    virtual void free_id(BlockId block_id);
+    virtual BlockId next_id() override;
+    virtual void free_id(BlockId block_id) override;
 
     /**
      * If the high order bits of {@code block_id} are greater than
