@@ -10,8 +10,6 @@
 #include <pingfs/block/block_manager/ping/ping_block_manager.hpp>
 #include <pingfs/block/block_manager/ping/pass_through_translator.hpp>
 
-#include <pingfs/block/block_manager/id_supplier/counter_supplier.hpp>
-
 #include <pingfs/block/block_manager/ping/track_freed_service.hpp>
 
 #include <pingfs/util/log.hpp>

@@ -113,6 +113,10 @@ target_link_libraries(duplicate_ping_fs pingfs_lib ${Boost_LIBRARIES} pingfs_pro
 add_executable(spoofed_ping "${APP_FOLDER}/spoofed_ping.cc")
 target_link_libraries(spoofed_ping pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
 
+# Sends a spoofed ping
+add_executable(distributed_fs "${APP_FOLDER}/distributed_fs.cc")
+target_link_libraries(distributed_fs pingfs_lib ${Boost_LIBRARIES} pingfs_proto ${PROTOBUF_LIBRARY} ${FUSE_LIBRARY} ${ADDITIONAL_LIBRARIES})
+
 
 ##### test builds ######
 set(TEST_FOLDER "../test")

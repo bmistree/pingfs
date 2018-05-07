@@ -1,3 +1,5 @@
+#include <pingfs/block/block_manager/id_supplier/counter_supplier.hpp>
+
 const uint16_t FS_ID = 55;
 
 void run_io_service(boost::asio::io_service* io_service) {
