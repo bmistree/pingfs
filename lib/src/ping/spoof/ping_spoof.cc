@@ -53,4 +53,15 @@ void PingSpoof::send(
     sock_.send_to(request_buffer.data(), endpoint);
 }
 
+void PingSpoof::send(std::shared_ptr<EchoRequest> echo_request,
+    const boost::asio::ip::address_v4& spoofed_src,
+    const boost::asio::ip::address_v4& spoofed_target) {
+
+    send(echo_request->get_body(),
+        echo_request->get_identifier(),
+        echo_request->get_sequence_number(),
+        spoofed_src,
+        spoofed_target);
+}
+
 }  // namespace pingfs
