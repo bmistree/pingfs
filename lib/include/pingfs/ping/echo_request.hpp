@@ -30,6 +30,8 @@ class EchoRequest {
 
     bool operator!=(const EchoRequest &other) const;
 
+    std::size_t byte_size() const;
+
  private:
     const uint16_t checksum_;
     const uint16_t identifier_;
@@ -39,6 +41,8 @@ class EchoRequest {
 
     static const uint8_t TYPE = 8;
     static const uint8_t CODE = 0;
+
+    static const uint8_t ICMP_HEADER_SIZE_BYTES = 8;
 
     static uint16_t checksum(uint16_t identifier,
         uint16_t sequence_number, const std::string& body);

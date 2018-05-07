@@ -54,6 +54,10 @@ uint16_t EchoRequest::get_identifier() const {
     return identifier_;
 }
 
+std::size_t EchoRequest::byte_size() const {
+    return ICMP_HEADER_SIZE_BYTES + body_.size();
+}
+
 uint16_t EchoRequest::get_sequence_number() const {
     return sequence_number_;
 }
