@@ -51,6 +51,7 @@ void DistributedBlockFuse::process(const BlockPtr& block) {
 }
 
 void DistributedBlockFuse::set_root_block(BlockPtr new_root) {
+    BlockFuse::set_root_block(new_root);
     // send root block out to all other nodes
     distributed_ping_service_->register_root(new_root);
 }
