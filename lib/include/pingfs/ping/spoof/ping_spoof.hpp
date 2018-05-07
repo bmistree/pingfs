@@ -17,9 +17,11 @@ class PingSpoof {
     explicit PingSpoof(boost::asio::io_service* io_service);
     ~PingSpoof();
 
-    void send(std::shared_ptr<EchoRequest> request,
+    void send(const std::string& content,
+        uint16_t identifier,
+        uint16_t sequence_number,
         const boost::asio::ip::address_v4& spoofed_src,
-        const boost::asio::ip::icmp::endpoint& target);
+        const boost::asio::ip::address_v4& spoofed_target);
 
  private:
     boost::asio::io_service* io_service_;
