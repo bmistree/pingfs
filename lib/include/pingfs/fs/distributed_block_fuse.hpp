@@ -30,6 +30,9 @@ class DistributedBlockFuse :
     void process(const BlockPtr& block) override;
 
  private:
+    void set_root_block_no_update(BlockPtr new_root);
+
+ private:
     std::shared_ptr<UpdatingIdSupplier> updating_id_supplier_;
     std::shared_ptr<DistributedFreedService> distributed_ping_service_;
 };

@@ -44,10 +44,14 @@ void DistributedBlockFuse::process(const BlockPtr& block) {
     }
 
     BlockPtr root = get_root_block();
-    if (root->get_id() > block->get_id()) {
+    if (root->get_id() >= block->get_id()) {
         return;
     }
-    set_root_block(block);
+    set_root_block_no_update(block);
+}
+
+void DistributedBlockFuse::set_root_block_no_update(BlockPtr new_root) {
+    BlockFuse::set_root_block(new_root);
 }
 
 void DistributedBlockFuse::set_root_block(BlockPtr new_root) {
