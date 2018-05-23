@@ -47,7 +47,7 @@ bool Ping::check_notify() {
     std::istringstream ipv4_stream(copy);
     IpV4Stream stream(&ipv4_stream);
     IpV4 ip_v4(&stream, copy.size());
-    
+
     if (ip_v4.get_length() > copy.size()) {
         // More bytes to read for this packet
         return false;
@@ -125,6 +125,8 @@ void Ping::ping(const std::string& content,
 
 void Ping::ping(const EchoRequest& request,
     const icmp::endpoint& endpoint) {
+    std::cout<<"\nGot here\n";
+    
     // Serialize request
     boost::asio::streambuf request_buffer;
     std::ostream os(&request_buffer);

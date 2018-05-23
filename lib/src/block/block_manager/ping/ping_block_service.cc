@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 
+#include <iostream>
+
 namespace pingfs {
 
 std::atomic<uint16_t> PingBlockService::id_generator_{0};
@@ -45,6 +47,8 @@ void PingBlockService::send_to_endpt(
 }
 
 void PingBlockService::process(const EchoResponse& resp) {
+    std::cout<<"\nGot an echo response\n";
+    
     if (resp.get_identifier() != fs_id_) {
         return;
     }
