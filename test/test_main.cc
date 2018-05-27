@@ -17,6 +17,7 @@
 #include "lib/fs/fs_util_test.hpp"
 #include "lib/fs/block_fuse_test.hpp"
 #include "lib/ping/echo_request_test.hpp"
+#include "lib/util/rate_queue_test.hpp"
 
 
 int main(int argc, char** argv) {
